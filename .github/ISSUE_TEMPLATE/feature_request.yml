@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest a new workflow, command set, or docs improvement.
+title: "[feature] "
+labels: ["feature", "needs discussion"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What data pain point are you solving?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the command/docs/workflow you want added.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      placeholder: SQL | dbt | file_structure | docker | docs | security | others
+  - type: textarea
+    id: impact
+    attributes:
+      label: Developer impact
+      description: Who benefits and how?
