@@ -1,0 +1,29 @@
+# Copy to ~/.dbt/profiles.yml (or set DBT_PROFILES_DIR) and adjust values.
+# Never commit real credentials — use environment variables in production/CI.
+
+dbt_analytics_engineering:
+  target: dev
+  outputs:
+    dev:
+      type: sqlserver
+      driver: "ODBC Driver 18 for SQL Server"
+      server: "{{ env_var('DBT_SQLSERVER_HOST', 'localhost') }}"
+      port: "{{ env_var('DBT_SQLSERVER_PORT', '1433') | int }}"
+      database: "{{ env_var('DBT_SQLSERVER_DATABASE', 'retail_analytics') }}"
+      schema: "{{ env_var('DBT_SQLSERVER_SCHEMA', 'dbt_dev') }}"
+      user: "{{ env_var('DBT_SQLSERVER_USER', 'sa') }}"
+      password: "{{ env_var('DBT_SQLSERVER_PASSWORD') }}"
+      trust_cert: true
+      encrypt: true
+
+    prod:
+      type: sqlserver
+      driver: "ODBC Driver 18 for SQL Server"
+      server: "{{ env_var('DBT_SQLSERVER_HOST') }}"
+      port: "{{ env_var('DBT_SQLSERVER_PORT', '1433') | int }}"
+      database: "{{ env_var('DBT_SQLSERVER_DATABASE') }}"
+      schema: "{{ env_var('DBT_SQLSERVER_SCHEMA', 'dbt_prod') }}"
+      user: "{{ env_var('DBT_SQLSERVER_USER') }}"
+      password: "{{ env_var('DBT_SQLSERVER_PASSWORD') }}"
+      trust_cert: true
+      encrypt: true

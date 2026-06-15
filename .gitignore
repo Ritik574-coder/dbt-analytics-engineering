@@ -1,21 +1,31 @@
 # ==========================================
 # DBT
 # ==========================================
+
 target/
 dbt_packages/
 logs/
 dbt.log
 
+# dbt generated artifacts
+manifest.json
+catalog.json
+run_results.json
+partial_parse.msgpack
+graph.gpickle
+graph_summary.json
+semantic_manifest.json
+
 # ==========================================
 # Python
 # ==========================================
-**pycache**/
-*.pyo
-*.pyd
+
+__pycache__/
+*.py[cod]
+*$py.class
 *.so
 
 # Virtual Environments
-
 venv/
 .venv/
 env/
@@ -25,55 +35,77 @@ python/
 # ==========================================
 # Environment Variables & Secrets
 # ==========================================
+
 .env
 .env.*
 *.env
 
-# Local dbt profiles (contains credentials)
-
-profiles.yml
+# Keep examples
+!.env.example
+!profiles.example.yml
 
 # ==========================================
-# JetBrains
+# IDEs & Editors
 # ==========================================
+
+.vscode/
 .idea/
 
 # ==========================================
-# OS Files
+# Operating System Files
 # ==========================================
+
 .DS_Store
 Thumbs.db
 
 # ==========================================
 # SQL Server
 # ==========================================
+
 *.bak
 *.trn
 
 # ==========================================
 # Temporary Files
 # ==========================================
+
 *.tmp
 *.temp
 *.swp
 *.swo
+*.cache
 
 # ==========================================
 # Testing & Coverage
 # ==========================================
+
 .coverage
 coverage.xml
 htmlcov/
+.pytest_cache/
 
 # ==========================================
-# Jupyter Notebooks
+# Jupyter
 # ==========================================
+
 .ipynb_checkpoints/
 
+# ==========================================
+# Docker
+# ==========================================
+
+docker-data/
+*.pid
 
 # ==========================================
-# Misc
+# Linux
+# ==========================================
+
+*~
+.nfs*
+~/.bashrc
+# ==========================================
+# Misc Logs
 # ==========================================
 
 *.log
-*.cache

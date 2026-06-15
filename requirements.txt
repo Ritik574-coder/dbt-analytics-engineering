@@ -1,0 +1,10 @@
+# dbt core and SQL Server adapter (pinned for reproducible CI/local dev)
+dbt-core==1.11.11
+dbt-sqlserver==1.10.0
+
+# SQL linting
+sqlfluff==3.4.0
+sqlfluff-templater-dbt==3.4.0
+
+# YAML validation in CI
+PyYAML==6.0.2

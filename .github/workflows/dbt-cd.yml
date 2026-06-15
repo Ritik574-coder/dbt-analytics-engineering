@@ -1,0 +1,117 @@
+name: dbt CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: dbt target (dev or prod)
+        required: true
+        default: prod
+        type: choice
+        options:
+          - dev
+          - prod
+  push:
+    branches: [main]
+    paths:
+      - "models/**"
+      - "macros/**"
+      - "seeds/**"
+      - "snapshots/**"
+      - "dbt_project.yml"
+      - "packages.yml"
+
+concurrency:
+  group: dbt-cd-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  deploy:
+    name: Deploy (${{ github.event_name == 'workflow_dispatch' && inputs.target || 'prod' }})
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install ODBC Driver 18
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Configure dbt profile
+        env:
+          DBT_PROFILES_DIR: ${{ runner.temp }}/dbt-profiles
+          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
+          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
+          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
+          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
+          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
+          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
+        run: |
+          mkdir -p "$DBT_PROFILES_DIR"
+          cp profiles.example.yml "$DBT_PROFILES_DIR/profiles.yml"
+          echo "DBT_PROFILES_DIR=$DBT_PROFILES_DIR" >> "$GITHUB_ENV"
+
+      - name: Resolve dbt target
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "DBT_TARGET=${{ inputs.target }}" >> "$GITHUB_ENV"
+          else
+            echo "DBT_TARGET=prod" >> "$GITHUB_ENV"
+          fi
+
+      - name: dbt deps
+        env:
+          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
+          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
+          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
+          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
+          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
+          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
+        run: dbt deps
+
+      - name: dbt debug
+        env:
+          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
+          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
+          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
+          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
+          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
+          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
+        run: dbt debug --target "$DBT_TARGET"
+
+      - name: dbt run
+        env:
+          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
+          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
+          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
+          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
+          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
+          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
+        run: dbt run --target "$DBT_TARGET"
+
+      - name: dbt test
+        env:
+          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
+          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
+          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
+          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
+          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
+          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
+        run: dbt test --target "$DBT_TARGET"
