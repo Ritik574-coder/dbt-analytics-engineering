@@ -13,7 +13,7 @@ Instead, contact maintainers privately with:
 - affected file/path,
 - reproduction steps,
 - impact assessment,
-- suggested fix (if available).
+- suggested fix .
 
 You should receive an acknowledgment within 3 business days.
 

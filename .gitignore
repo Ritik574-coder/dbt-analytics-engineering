@@ -44,9 +44,6 @@ python/
 !.env.example
 !profiles.example.yml
 
-# Local dbt profiles
-profiles.yml
-
 # ==========================================
 # IDEs & Editors
 # ==========================================

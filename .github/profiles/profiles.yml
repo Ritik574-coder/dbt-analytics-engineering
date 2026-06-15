@@ -1,0 +1,15 @@
+# CI/CD profile — credentials supplied via GitHub Actions env vars or secrets.
+dbt_analytics_engineering:
+  target: ci
+  outputs:
+    ci:
+      type: sqlserver
+      driver: "ODBC Driver 18 for SQL Server"
+      server: "{{ env_var('DBT_SQLSERVER_HOST', 'localhost') }}"
+      port: "{{ env_var('DBT_SQLSERVER_PORT', '1433') | int }}"
+      database: "{{ env_var('DBT_SQLSERVER_DATABASE', 'master') }}"
+      schema: "{{ env_var('DBT_SQLSERVER_SCHEMA', 'dbt_ci') }}"
+      user: "{{ env_var('DBT_SQLSERVER_USER', 'sa') }}"
+      password: "{{ env_var('DBT_SQLSERVER_PASSWORD') }}"
+      trust_cert: true
+      encrypt: true
