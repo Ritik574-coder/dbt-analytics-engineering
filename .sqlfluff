@@ -1,0 +1,29 @@
+[sqlfluff]
+dialect = tsql
+templater = dbt
+max_line_length = 120
+exclude_rules = layout.long_lines
+
+[sqlfluff:templater:dbt]
+project_dir = .
+profiles_dir = .
+profile = dbt_analytics_engineering
+target = dev
+
+[sqlfluff:indentation]
+tab_space_size = 4
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.identifiers]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.literals]
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.types]
+capitalisation_policy = lower

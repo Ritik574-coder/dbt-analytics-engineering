@@ -1,0 +1,108 @@
+name: dbt Docs
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: dbt-docs-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DBT_PROFILES_DIR: .github/profiles
+  DBT_SQLSERVER_HOST: localhost
+  DBT_SQLSERVER_PORT: 1433
+  DBT_SQLSERVER_DATABASE: retail_analytics
+  DBT_SQLSERVER_SCHEMA: dbt_ci
+  DBT_SQLSERVER_USER: sa
+  DBT_SQLSERVER_PASSWORD: TestPassword123!
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  generate-docs:
+    name: Generate documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: TestPassword123!
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P TestPassword123! -C -Q 'SELECT 1' || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+          --health-start-period 30s
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install ODBC Driver 18
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc-dev
+          echo "$PATH:/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Wait for SQL Server
+        run: bash scripts/wait_for_sqlserver.sh
+
+      - name: Initialize CI database
+        run: |
+          sqlcmd -S localhost,1433 -U sa -P "$DBT_SQLSERVER_PASSWORD" -C -i scripts/ci-init-db.sql
+
+      - name: Generate dbt docs
+        run: |
+          dbt deps
+          dbt docs generate
+
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-docs
+          path: target/
+          retention-days: 14
+
+      - name: Deploy docs to GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/
+
+  deploy-pages:
+    name: Publish GitHub Pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: generate-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,8 +1,11 @@
 ####################################################################################
-# PROJECT SETUP: requirement tools for data pipeline (Docker + SQL Server)
+# COMMAND REFERENCE: Docker, SQL Server, Git, Superset, and dbt
 # Author: Ritik
-# Purpose: Setup virtual environment, install dependencies, configure database
-#          credentials, and run the pipeline script.
+#
+# NOTE: For automated local setup, prefer:
+#   bash scripts/setup-local-dev.sh
+#
+# This file is a personal cheat sheet — not intended to be run end-to-end.
 ####################################################################################
 
 
