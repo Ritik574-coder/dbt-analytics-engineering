@@ -1,0 +1,30 @@
+name: Docs improvement
+description: Suggest clarity, correctness, or onboarding improvements.
+title: "[docs] "
+labels: ["documentation"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Docs location
+      placeholder: README.md or docs/...
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current issue
+      description: What is confusing, missing, or incorrect?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+    validations:
+      required: true
+  - type: textarea
+    id: audience
+    attributes:
+      label: Target audience
+      description: Beginner, intermediate, or advanced data engineer?
