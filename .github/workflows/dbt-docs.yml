@@ -57,11 +57,17 @@ jobs:
 
       - name: Install ODBC Driver 18
         run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
+          curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+          | sudo gpg --dearmor --batch --yes \
+          -o /usr/share/keyrings/microsoft-prod.gpg
+      
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" \
+          | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
+      
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc-dev
-          echo "$PATH:/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
+      
+          echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
