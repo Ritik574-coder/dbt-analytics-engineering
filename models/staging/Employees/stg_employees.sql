@@ -1,0 +1,20 @@
+SELECT
+     employee_id
+    ,first_name
+    ,last_name
+    ,full_name
+    ,email
+    ,phone
+    ,job_title
+    ,department
+    ,store_id
+    ,store_name
+    ,store_city
+    ,hire_date
+    ,years_employed
+    ,annual_salary_usd
+    ,commission_rate_pct
+    ,is_active
+    ,performance_rating
+    ,manager_id
+FROM {{ source('bronze', 'employees') }};

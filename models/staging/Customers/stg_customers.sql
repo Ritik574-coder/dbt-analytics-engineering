@@ -1,0 +1,27 @@
+SELECT
+     customer_id
+    ,title
+    ,first_name
+    ,last_name
+    ,full_name
+    ,gender
+    ,date_of_birth
+    ,age
+    ,email
+    ,phone
+    ,address
+    ,city
+    ,state
+    ,state_abbr
+    ,state_full
+    ,zip_code
+    ,country
+    ,region
+    ,customer_segment
+    ,loyalty_points
+    ,is_active
+    ,account_created_date
+    ,preferred_channel
+    ,annual_income_usd
+    ,company
+FROM {{ source('bronze', 'customers') }};

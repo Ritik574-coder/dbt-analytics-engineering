@@ -1,0 +1,96 @@
+# =============================================================================
+# ========================= BRONZE SOURCE DEFINITIONS =========================
+# =============================================================================
+# Purpose:
+# | Defines all raw source tables available in the Bronze layer of the  |
+# | Retail Data Warehouse. These sources represent the initial landing  |
+# | zone for data ingested from operational systems and external feeds. |
+# Maintainer: Ritik
+# =============================================================================
+version: 2
+
+sources:
+  - name: bronze
+    description: |
+      Bronze layer contains raw, untransformed data ingested from source systems.
+      These tables represent the initial landing zone of the Retail Data Warehouse
+      and serve as the source for all staging models.
+
+    database: RetailDB
+    schema: bronze
+
+    tables:
+      - name: customers
+        description: |
+          Raw customer master dataset containing customer demographic, contact,
+          geographic, account and loyalty information. Data profiling identified
+          multiple data quality issues including duplicate customer identifiers,
+          inconsistent categorical values, mixed date formats, malformed email
+          addresses, non-standard phone number patterns, missing values, incomplete
+          address information, invalid ZIP codes, inconsistent state and city names,
+          and varying text formats across several attributes. The dataset represents
+          source-system data in its original form and may contain operational data
+          entry errors, formatting inconsistencies and missing business attributes.
+
+      - name: employees
+        description: |
+          Raw employee master dataset containing employee identity, contact,
+          organizational, compensation and performance-related information.
+          Data profiling identified multiple data quality issues including
+          invalid or duplicate employee identifiers, inconsistent name formats,
+          leading and trailing whitespace, malformed email addresses, multiple
+          phone number patterns, missing values, inconsistent categorical values,
+          mixed hire date formats, invalid numeric values in compensation fields,
+          incomplete store information and inconsistencies across employee
+          management and performance attributes. The dataset represents source
+          system data in its original form and may contain operational data entry
+          errors, formatting inconsistencies and incomplete business records.
+
+
+      - name: inventory_snapshots
+        description: |
+          Raw inventory snapshot data containing product stock levels, pricing,
+          warehouse locations and store allocation details. Data profiling
+          identified mixed date formats, invalid product identifiers, category
+          inconsistencies, missing values and formatting issues across inventory
+          and pricing attributes.
+
+
+      - name: products
+        description: |
+          Raw product master dataset containing product catalog, pricing,
+          inventory, supplier and product lifecycle information. Data profiling
+          identified invalid product identifiers, inconsistent text formatting,
+          missing product attributes, pricing anomalies, mixed date formats,
+          invalid inventory values and inconsistent supplier information.
+
+      - name: returns
+        description: |
+          Raw returns data containing customer return and refund transactions.
+          Profiling revealed identifier quality issues, formatting inconsistencies,
+          missing values, invalid monetary amounts, mixed date formats and
+          inconsistent categorical values across return channels, statuses and
+          operational attributes.
+
+      - name: reviews
+        description: |
+          Raw review data containing customer feedback records. Profiling revealed
+          identifier quality issues, inconsistent categorical values, mixed date
+          formats, invalid ratings, missing references and formatting anomalies
+          across multiple review attributes.
+
+      - name: sales_transactions
+        description: |
+          Raw sales transaction data collected from multiple operational systems.
+          Profiling revealed date format variations, duplicate records, invalid
+          financial values, inconsistent business categories, missing foreign key
+          references, formatting anomalies and transactional integrity issues
+          across the dataset.
+
+      - name: stores
+        description: |
+          Raw store dataset containing location and operational information.
+          Profiling revealed identifier quality issues, geographic data
+          inconsistencies, invalid contact information, mixed date formats,
+          malformed ZIP codes, missing values and inconsistent categorical
+          representations across the dataset.
