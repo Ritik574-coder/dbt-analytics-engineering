@@ -1,0 +1,23 @@
+SELECT 
+     product_id
+    ,sku
+    ,product_name
+    ,brand
+    ,category
+    ,sub_category
+    ,department
+    ,base_price_usd
+    ,cost_price_usd
+    ,gross_margin_pct
+    ,weight_kg
+    ,is_available
+    ,stock_quantity
+    ,reorder_level
+    ,supplier_name
+    ,supplier_country
+    ,warranty_years
+    ,rating_avg
+    ,review_count
+    ,launched_date
+    ,product_url
+FROM {{ source('bronze', 'products') }} ;

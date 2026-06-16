@@ -148,4 +148,4 @@ retail_analytics/
     ├── data_quality_check.py  # Custom data quality scripts
     └── setup_local_db.sh      # Script to set up a local SQL Server instance
 
-```
+``` 
