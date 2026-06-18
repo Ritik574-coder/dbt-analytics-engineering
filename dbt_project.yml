@@ -25,14 +25,17 @@ vars:
 
 models:
   dbt_analytics_engineering:
+
     staging:
-      +materialized: table
+      +materialized: view
       +tags: ["staging", "bronze"]
+
     intermediate:
       +materialized: table
       +tags: ["intermediate", "silver"]
+
     marts:
-      +materialized: view
+      +materialized: table
       +tags: ["marts", "gold"]
 
 seeds:

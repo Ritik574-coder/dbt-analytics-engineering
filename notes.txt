@@ -1,0 +1,341 @@
+      - name: address
+        description: "Customer street address"
+      - name: city
+        description: "Standardized city name (title case, typos corrected)"
+      - name: state_abbr
+        description: "Standardized two-letter state abbreviation"
+      - name: state_full
+        description: "Standardized full state name"
+      - name: zip_code
+        description: "Validated 5-digit ZIP code"
+      - name: country
+        description: "Standardized country name"
+      - name: region
+        description: "Geographic region classification"
+      - name: customer_segment
+        description: "Customer segmentation category"
+      - name: loyalty_points
+        description: "Customer loyalty points balance"
+      - name: is_active
+        description: "Customer account active status (True / False / Unknown)"
+      - name: account_created_date
+        description: "ISO-standardized account creation date (YYYY-MM-DD)"
+      - name: preferred_channel
+        description: "Preferred customer communication channel"
+      - name: annual_income_usd
+        description: "Annual household income in USD (NULLs imputed with segment median)"
+      - name: company
+        description: "Customer company/employer name"
+
+
+  - name: src_employees
+    description: >
+      Cleaned and standardized employee data from the bronze layer.
+      Applies name parsing, email/phone standardization, organizational attribute
+      normalization, date standardization, compensation validation, and performance rating.
+    columns:
+      - name: employee_id
+        description: "Unique employee identifier"
+        tests:
+          - unique
+          - not_null
+      - name: first_name
+        description: "Employee first name (parsed from full_name)"
+      - name: last_name
+        description: "Employee last name (parsed from full_name)"
+      - name: email
+        description: "Standardized lowercase employee email"
+      - name: phone
+        description: "Standardized US phone format: +1 (XXX) XXX-XXXX"
+      - name: job_title
+        description: "Employee job title"
+      - name: department
+        description: "Employee department"
+      - name: store_id
+        description: "Associated store identifier"
+      - name: store_name
+        description: "Associated store name"
+      - name: store_city
+        description: "Store city location"
+      - name: hire_date
+        description: "ISO-standardized hire date (YYYY-MM-DD)"
+      - name: years_employed
+        description: "Years of employment (decimal)"
+      - name: annual_salary_usd
+        description: "Annual salary in USD"
+      - name: commission_rate_pct
+        description: "Commission rate percentage"
+      - name: is_active
+        description: "Employee active status (True / False / NULL)"
+      - name: performance_rating
+        description: "Standardized performance rating"
+      - name: manager_id
+        description: "Manager employee identifier"
+
+
+  - name: src_inventory
+    description: >
+      Cleaned and standardized inventory snapshot data from the bronze layer.
+    columns:
+      - name: snapshot_date
+        description: "ISO-standardized inventory snapshot date (YYYY-MM-DD)"
+        tests:
+          - not_null
+      - name: product_id
+        description: "Product identifier for inventory tracking"
+        tests:
+          - not_null
+      - name: product_name
+        description: "Standardized product name"
+      - name: sku
+        description: "Stock-keeping unit identifier"
+      - name: category
+        description: "Standardized product category"
+      - name: stock_on_hand
+        description: "Total physical inventory quantity on hand"
+      - name: stock_reserved
+        description: "Quantity of inventory reserved"
+      - name: stock_available
+        description: "Available inventory (stock_on_hand - stock_reserved)"
+      - name: reorder_level
+        description: "Inventory replenishment threshold"
+      - name: unit_cost
+        description: "Standardized unit cost in USD"
+      - name: unit_price
+        description: "Standardized unit selling price in USD"
+      - name: inventory_value
+        description: "Derived inventory valuation (unit_price * stock_on_hand)"
+      - name: warehouse_location
+        description: "Standardized warehouse location code"
+      - name: store_id
+        description: "Store-level inventory reference"
+
+
+  - name: src_products
+    description: >
+      Cleaned and standardized product master data from the bronze layer.
+      Applies identifier validation, SKU standardization, pricing cleanup,
+      inventory availability normalization, supplier standardization, and date standardization.
+    columns:
+      - name: product_id
+        description: "Unique product identifier"
+        tests:
+          - unique
+          - not_null
+      - name: sku
+        description: "Standardized uppercase SKU (13 characters)"
+      - name: product_name
+        description: "Standardized product name (title case)"
+      - name: brand
+        description: "Product brand name (title case)"
+      - name: category
+        description: "Product category classification"
+      - name: sub_category
+        description: "Product sub-category classification"
+      - name: department
+        description: "Business department classification"
+      - name: base_price_usd
+        description: "Standardized base selling price in USD"
+      - name: cost_price_usd
+        description: "Standardized cost price in USD"
+      - name: gross_margin_pct
+        description: "Product gross margin percentage"
+      - name: weight_kg
+        description: "Product weight in kilograms"
+      - name: is_available
+        description: "Inventory availability status"
+      - name: stock_quantity
+        description: "Current stock quantity"
+      - name: reorder_level
+        description: "Inventory reorder threshold"
+      - name: supplier_name
+        description: "Standardized supplier name"
+      - name: supplier_country
+        description: "Standardized supplier country"
+      - name: warranty_years
+        description: "Product warranty duration in years"
+      - name: rating_avg
+        description: "Average customer rating (1-5)"
+      - name: review_count
+        description: "Total number of customer reviews"
+      - name: launched_date
+        description: "ISO-standardized product launch date (YYYY-MM-DD)"
+      - name: product_url
+        description: "Standardized product URL"
+
+
+  - name: src_returns
+    description: >
+      Cleaned and standardized return transaction data from the bronze layer.
+    columns:
+      - name: return_id
+        description: "Unique return transaction identifier"
+        tests:
+          - unique
+          - not_null
+      - name: original_txn_id
+        description: "Original source transaction identifier"
+      - name: original_order_id
+        description: "Original order identifier"
+      - name: customer_id
+        description: "Customer identifier associated with return"
+      - name: customer_name
+        description: "Standardized customer name"
+      - name: product_id
+        description: "Returned product identifier"
+      - name: product_name
+        description: "Standardized returned product name"
+      - name: quantity_returned
+        description: "Quantity of items returned"
+      - name: return_date
+        description: "ISO-standardized return date (YYYY-MM-DD)"
+      - name: return_reason
+        description: "Standardized return reason"
+      - name: refund_amount
+        description: "Standardized refund amount in USD"
+      - name: refund_method
+        description: "Refund payment method"
+      - name: return_channel
+        description: "Standardized return channel"
+        tests:
+          - accepted_values:
+              values: ["Mobile App", "In Store", "Online", "Phone Call", "Catalog", "Unknown"]
+      - name: restocked
+        description: "Restocking indicator (Yes / No / Unknown)"
+      - name: return_status
+        description: "Standardized return processing status"
+      - name: handled_by_emp_id
+        description: "Employee identifier who handled the return"
+      - name: notes
+        description: "Operational return notes"
+
+
+  - name: src_reviews
+    description: >
+      Cleaned and standardized customer review data from the bronze layer.
+    columns:
+      - name: review_id
+        description: "Unique customer review identifier"
+        tests:
+          - unique
+          - not_null
+      - name: txn_id
+        description: "Transaction identifier associated with review"
+      - name: customer_id
+        description: "Customer identifier"
+      - name: customer_name
+        description: "Standardized customer name"
+      - name: product_id
+        description: "Reviewed product identifier"
+      - name: product_name
+        description: "Standardized reviewed product name"
+      - name: rating
+        description: "Customer rating score (1-5)"
+        tests:
+          - not_null
+      - name: rating_text
+        description: "Standardized rating sentiment category"
+      - name: review_date
+        description: "ISO-standardized review submission date (YYYY-MM-DD)"
+      - name: verified_purchase
+        description: "Purchase verification status"
+      - name: helpful_votes
+        description: "Count of helpful votes received"
+      - name: review_channel
+        description: "Standardized review submission channel"
+        tests:
+          - accepted_values:
+              values: ["Mobile App", "In Store", "Online", "Phone Call", "Catalog", "Unknown"]
+      - name: review_title
+        description: "Standardized review title"
+
+
+  - name: src_stores
+    description: >
+      Cleaned and standardized retail store operational data from the bronze layer.
+    columns:
+      - name: store_id
+        description: "Unique store identifier"
+        tests:
+          - unique
+          - not_null
+      - name: store_name
+        description: "Standardized retail store name"
+      - name: store_type
+        description: "Standardized store category"
+      - name: address
+        description: "Standardized store address"
+      - name: city
+        description: "Standardized city name"
+      - name: state
+        description: "Standardized two-letter state abbreviation"
+      - name: state_full
+        description: "Standardized full state name"
+      - name: zip_code
+        description: "Validated ZIP code"
+      - name: country
+        description: "Standardized country name"
+      - name: region
+        description: "Standardized regional classification"
+      - name: district
+        description: "Standardized district classification"
+      - name: phone
+        description: "Standardized store phone number: +1 (XXX) XXX-XXXX"
+      - name: manager_name
+        description: "Standardized store manager name"
+      - name: opened_date
+        description: "ISO-standardized store opening date (YYYY-MM-DD)"
+      - name: sq_footage
+        description: "Store area in square feet"
+      - name: num_employees
+        description: "Number of employees at store"
+      - name: annual_rent_usd
+        description: "Annual rental cost in USD"
+      - name: is_active
+        description: "Store operational status (True / False / Unknown)"
+      - name: has_parking
+        description: "Parking availability (True / False / Unknown)"
+      - name: has_cafe
+        description: "Cafe availability (True / False / Unknown)"
+
+
+  - name: src_transactions
+    description: >
+      Cleaned and deduplicated sales transaction data from the bronze layer.
+    columns:
+      - name: transaction_id
+        description: "Unique transaction identifier"
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: "Order identifier"
+      - name: order_line_number
+        description: "Line item number within order"
+      - name: order_date
+        description: "ISO-standardized order date (YYYY-MM-DD)"
+      - name: ship_date
+        description: "ISO-standardized ship date (YYYY-MM-DD)"
+      - name: delivery_date
+        description: "ISO-standardized delivery date (YYYY-MM-DD)"
+      - name: customer_id
+        description: "Customer identifier"
+      - name: product_id
+        description: "Product identifier"
+      - name: store_id
+        description: "Store identifier"
+      - name: employee_id
+        description: "Employee identifier"
+      - name: quantity_ordered
+        description: "Quantity of items ordered"
+      - name: unit_selling_price
+        description: "Standardized unit selling price in USD"
+      - name: line_total_before_tax
+        description: "Standardized line total before tax in USD"
+      - name: line_total_with_tax
+        description: "Standardized line total with tax in USD"
+      - name: sales_channel
+        description: "Standardized sales channel"
+      - name: order_status
+        description: "Order processing status"
+
