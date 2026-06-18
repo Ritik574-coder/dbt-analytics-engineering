@@ -1,0 +1,131 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: |
+      Raw customer master dataset containing customer demographic, contact,
+      geographic, account and loyalty information. Data profiling identified
+      multiple data quality issues including duplicate customer identifiers,
+      inconsistent categorical values, mixed date formats, malformed email
+      addresses, non-standard phone number patterns, missing values, incomplete
+      address information, invalid ZIP codes, inconsistent state and city names,
+      and varying text formats across several attributes. The dataset represents
+      source-system data in its original form and may contain operational data
+      entry errors, formatting inconsistencies and missing business attributes.
+
+    columns:
+      - name: customer_id
+        description: |
+          Unique customer identifier sourced from the customer master table. This field
+          serves as the primary business key or surrogate key used to uniquely identify
+          customer records across source and downstream systems. The value is expected
+          to be unique and non-null for all records, ensuring entity integrity and
+          supporting reliable customer-level analysis, data integration, and reporting.
+
+        tests:
+          - unique
+          - not_null
+
+      - name: full_name
+        description: |
+          Customer full name derived from source customer records. This field contain
+          leading and trailing whitespace, inconsistent capitalization, formatting
+          variations, and data quality issues. In some records, the value not align
+          with the concatenated combination of title, first_name, and last_name due to
+          source system inconsistencies, data entry errors, or incomplete customer
+          information. Data validation and standardization should be applied to ensure
+          consistency across customer identity attributes.
+      
+      - name: first_name
+        description: |
+          Customer first name captured from source customer records. This field 
+          contain leading and trailing whitespace, inconsistent capitalization, null
+          values, and formatting discrepancies. In certain cases, the value not
+          align with the corresponding component of full_name due to data quality
+          issues, source system inconsistencies, or manual entry errors.
+      
+      - name: last_name
+        description: |
+          Customer last name captured from source customer records. This field 
+          contain leading and trailing whitespace, inconsistent capitalization, null
+          values, and formatting discrepancies. Some records  exhibit mismatches
+          between last_name and the surname component extracted from full_name due to
+          source data quality issues or inconsistent customer master records.
+      
+      - name: title
+        description: |
+          Customer title or honorific prefix (for example, NULL,Dr.,Mr.,Mrs.,Ms.,Prof.)
+          sourced from customer master data. This field contain leading and
+          trailing whitespace, inconsistent formatting, capitalization variations, and
+          null values. Standardization is required to ensure consistent reporting
+          and downstream data consumption.
+
+      - name: gender
+        description: |
+          Customer gender information captured from source customer records. This field
+          exhibits data quality challenges including null values, leading and trailing
+          whitespace, inconsistent capitalization, and non-standardized gender
+          representations. Equivalent gender categories stored in multiple
+          formats (e.g., 'F', 'Female', 'FEMALE', 'M', 'Male', 'MALE', 'NB',
+          'Non-Binary', 'Other', and 'Prefer not to say'). Data cleansing and
+          normalization should be applied to establish a consistent set of gender
+          values for analytical and reporting purposes.
+
+      - name: date_of_birth
+        description: |
+          Customer date of birth captured from source customer records. This field
+          contains multiple date formats, mixed regional date conventions, locale
+          ambiguity, inconsistent separators, malformed date values, and ambiguous
+          month/day ordering. Source values were profiled, classified, and standardized
+          into ISO date format using pattern-based parsing and error-handling logic.
+          Ambiguous dates were resolved according to dataset-level format analysis and
+          established business rules to support consistent analytical reporting and
+          downstream data consumption.
+
+      - name: age
+        description: |
+          Customer age attribute captured from source records. Source values
+          contain missing data, invalid ages, and inconsistencies with the associated
+          date_of_birth value. For analytical consistency, age should be derived from
+          the standardized date_of_birth field rather than relying on the raw source
+          attribute, ensuring accurate customer demographic reporting and segmentation.
+
+      - name: email
+        description: |
+          Customer email address captured from source customer records. Source values
+          contain inconsistent casing, leading and trailing whitespace, malformed
+          email structures, duplicate '@' symbols, domain spelling errors, and other
+          invalid representations. Email values were standardized through case
+          normalization, whitespace removal, domain correction, and structural
+          validation to ensure consistent customer identification, communication, and
+          downstream analytical reporting.
+
+      - name: phone
+        description: |
+          Customer phone number captured from source customer records. Source values
+          contain inconsistent formatting, structural variations, invalid digit
+          groupings, incomplete phone numbers, and malformed representations. Phone
+          numbers were profiled, parsed, validated, and standardized into the canonical
+          US format '+1 (AAA) BBB-CCCC'. Records failing structural validation were
+          flagged as invalid to ensure consistent customer contact information and
+          downstream analytical reporting.
+
+      - name: address
+        description: |
+          Customer street address captured from source customer records. Source values
+          contain inconsistent formatting, structural variations, and missing address information.
+          and This field contain leading and trailing whitespace.
+
+      - name: city
+        description: |
+          Customer city name captured from source customer records. Source values
+          contain inconsistent formatting, structural variations, invalid digit
+          groupings, incomplete address information, and malformed representations.
+          City values were profiled, parsed, validated, and standardized into the
+          canonical US format 'Anytown'. Records failing structural validation were
+          flagged as invalid to ensure consistent customer address information and
+          downstream analytical reporting.
+
+      - name: state
+        description: |
+          Customer state name captured from source customer records. Source values 
