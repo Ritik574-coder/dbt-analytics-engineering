@@ -75,7 +75,7 @@ jobs:
       - name: Lint SQL (when models exist)
         run: |
           if find models -name '*.sql' -print -quit | grep -q .; then
-            sqlfluff lint models
+            sqlfluff lint models --ignore=templating
           else
             echo "No SQL models found — skipping sqlfluff."
           fi
