@@ -6,9 +6,9 @@ exclude_rules = layout.long_lines
 
 [sqlfluff:templater:dbt]
 project_dir = .
-profiles_dir = .
+profiles_dir = .github/profiles
 profile = dbt_analytics_engineering
-target = dev
+target = ci
 
 [sqlfluff:indentation]
 tab_space_size = 4
