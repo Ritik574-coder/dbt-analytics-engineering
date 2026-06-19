@@ -1,4 +1,5 @@
 SELECT 
+    inventory_snapshot_sk,
     snapshot_date,
     product_id,
     product_name,
