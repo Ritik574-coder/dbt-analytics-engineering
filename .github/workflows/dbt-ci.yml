@@ -139,7 +139,7 @@ jobs:
           sqlcmd -S localhost,1433 -U sa -P "$DBT_SQLSERVER_PASSWORD" -C -i scripts/loading/ddl_bronze.sql
 
       - name: Load Bronze Data
-        run: python scripts/loading/load_bronze.py
+        run: python scripts/loading/python_load.py
 
       - name: Install dbt packages
         run: dbt deps
