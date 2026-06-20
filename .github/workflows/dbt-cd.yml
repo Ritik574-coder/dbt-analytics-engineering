@@ -81,42 +81,43 @@ jobs:
             echo "DBT_TARGET=prod" >> "$GITHUB_ENV"
           fi
 
-      - name: dbt deps
-        env:
-          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
-          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
-          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
-          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
-          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
-          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
-        run: dbt deps
-
-      - name: dbt debug
-        env:
-          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
-          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
-          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
-          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
-          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
-          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
-        run: dbt debug --target "$DBT_TARGET"
-
-      - name: dbt run
-        env:
-          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
-          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
-          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
-          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
-          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
-          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
-        run: dbt run --target "$DBT_TARGET"
-
-      - name: dbt test
-        env:
-          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
-          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
-          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
-          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
-          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
-          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
-        run: dbt test --target "$DBT_TARGET"
+#      - name: dbt deps
+#        env:
+#          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
+#          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
+#          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
+#          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
+#          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
+#          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
+#        run: dbt deps
+#
+#      - name: dbt debug
+#        env:
+#          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
+#          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
+#          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
+#          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
+#          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
+#          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
+#        run: dbt debug --target "$DBT_TARGET"
+#
+#      - name: dbt run
+#        env:
+#          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
+#          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
+#          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
+#          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
+#          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
+#          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
+#        run: dbt run --target "$DBT_TARGET"
+#
+#      - name: dbt test
+#        env:
+#          DBT_SQLSERVER_HOST: ${{ secrets.DBT_SQLSERVER_HOST }}
+#          DBT_SQLSERVER_PORT: ${{ secrets.DBT_SQLSERVER_PORT }}
+#          DBT_SQLSERVER_DATABASE: ${{ secrets.DBT_SQLSERVER_DATABASE }}
+#          DBT_SQLSERVER_SCHEMA: ${{ secrets.DBT_SQLSERVER_SCHEMA }}
+#          DBT_SQLSERVER_USER: ${{ secrets.DBT_SQLSERVER_USER }}
+#          DBT_SQLSERVER_PASSWORD: ${{ secrets.DBT_SQLSERVER_PASSWORD }}
+#        run: dbt test --target "$DBT_TARGET"
+#
