@@ -8,3 +8,8 @@ sqlfluff-templater-dbt==3.4.0
 
 # YAML validation in CI
 PyYAML==6.0.2
+
+# python and sql modules
+pandas==2.3.0
+sqlalchemy==2.0.41
+pyodbc==5.2.0
