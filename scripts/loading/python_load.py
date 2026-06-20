@@ -49,8 +49,7 @@ for csv_file, table_name in FILES.items():
         schema="bronze",
         if_exists="append",
         index=False,
-        chunksize=1000,
-        method="multi",
+        chunksize=100,
     )
 
     print(f"Loaded {len(df)} rows into bronze.{table_name}")
