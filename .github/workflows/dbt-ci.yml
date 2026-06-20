@@ -130,9 +130,16 @@ jobs:
       - name: Wait for SQL Server
         run: bash scripts/wait_for_sqlserver.sh
 
-      - name: Initialize CI database
+      - name: Create Bronze Tables
         run: |
           sqlcmd -S localhost,1433 -U sa -P "$DBT_SQLSERVER_PASSWORD" -C -i scripts/ci-init-db.sql
+
+      - name: Create Bronze Tables
+        run: |
+          sqlcmd -S localhost,1433 -U sa -P "$DBT_SQLSERVER_PASSWORD" -C -i scripts/loading/ddl_bronze.sql
+
+      - name: Load Bronze Data
+        run: python scripts/loading/load_bronze.py
 
       - name: Install dbt packages
         run: dbt deps

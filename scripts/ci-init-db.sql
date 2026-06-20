@@ -1,10 +1,16 @@
-IF DB_ID('retail_analytics') IS NULL
+IF DB_ID('RetailDB') IS NULL
 BEGIN
-    CREATE DATABASE retail_analytics;
+    CREATE DATABASE RetailDB;
 END;
 GO
 
-USE retail_analytics;
+USE RetailDB;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'bronze')
+BEGIN
+    EXEC('CREATE SCHEMA bronze');
+END;
 GO
 
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'dbt_ci')

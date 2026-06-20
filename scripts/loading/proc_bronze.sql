@@ -102,61 +102,17 @@ BEGIN
         TRUNCATE TABLE bronze.customers ;
 
         PRINT '>> [INFO] Loading table : bronze.customers | ' + CONVERT(NVARCHAR, GETDATE(), 120) ;
-        INSERT INTO [RetailDB].[bronze].[customers]
+        BULK INSERT bronze.customers
+        FROM '/data/raw_customers.csv'
+        WITH
         (
-             [customer_id]
-            ,[title]
-            ,[first_name]
-            ,[last_name]
-            ,[full_name]
-            ,[gender]
-            ,[date_of_birth]
-            ,[age]
-            ,[email]
-            ,[phone]
-            ,[address]
-            ,[city]
-            ,[state]
-            ,[state_abbr]
-            ,[state_full]
-            ,[zip_code]
-            ,[country]
-            ,[region]
-            ,[customer_segment]
-            ,[loyalty_points]
-            ,[is_active]
-            ,[account_created_date]
-            ,[preferred_channel]
-            ,[annual_income_usd]
-            ,[company]
-        )
-        SELECT
-             [customer_id]
-            ,[title]
-            ,[first_name]
-            ,[last_name]
-            ,[full_name]
-            ,[gender]
-            ,[date_of_birth]
-            ,[age]
-            ,[email]
-            ,[phone]
-            ,[address]
-            ,[city]
-            ,[state]
-            ,[state_abbr]
-            ,[state_full]
-            ,[zip_code]
-            ,[country]
-            ,[region]
-            ,[customer_segment]
-            ,[loyalty_points]
-            ,[is_active]
-            ,[account_created_date]
-            ,[preferred_channel]
-            ,[annual_income_usd]
-            ,[company]
-        FROM [TestDB].[bronze].[customers] ;
+            FORMAT = 'CSV',
+            FIRSTROW = 2,
+            FIELDTERMINATOR = ',',
+            FIELDQUOTE = '"',
+            ROWTERMINATOR = '0x0a',
+            TABLOCK
+        ); 
 
         SET @end_time = GETDATE() ;
 
@@ -169,47 +125,16 @@ BEGIN
         TRUNCATE TABLE bronze.employees ;
 
         PRINT '>> [INFO] Loading Table : bronze.employees | ' + CONVERT(NVARCHAR, GETDATE(), 120) ;
-        INSERT INTO [RetailDB].[bronze].[employees]
-        (
-             [employee_id]
-            ,[first_name]
-            ,[last_name]
-            ,[full_name]
-            ,[email]
-            ,[phone]
-            ,[job_title]
-            ,[department]
-            ,[store_id]
-            ,[store_name]
-            ,[store_city]
-            ,[hire_date]
-            ,[years_employed]
-            ,[annual_salary_usd]
-            ,[commission_rate_pct]
-            ,[is_active]
-            ,[performance_rating]
-            ,[manager_id]
-        )
-        SELECT
-            [employee_id]
-            ,[first_name]
-            ,[last_name]
-            ,[full_name]
-            ,[email]
-            ,[phone]
-            ,[job_title]
-            ,[department]
-            ,[store_id]
-            ,[store_name]
-            ,[store_city]
-            ,[hire_date]
-            ,[years_employed]
-            ,[annual_salary_usd]
-            ,[commission_rate_pct]
-            ,[is_active]
-            ,[performance_rating]
-            ,[manager_id]
-        FROM [TestDB].[bronze].[employees] ;
+        BULK INSERT bronze.employees
+        FROM '/data/raw_employees.csv'
+        WITH(
+                FORMAT = 'CSV',
+                FIRSTROW = 2,
+                FIELDTERMINATOR = ',',
+                FIELDQUOTE = '"',
+                ROWTERMINATOR = '0x0a',
+                TABLOCK
+        );
 
         SET @end_time = GETDATE() ;
 
@@ -222,39 +147,16 @@ BEGIN
         TRUNCATE TABLE bronze.inventory_snapshots ;
 
         PRINT '>> [INFO] Loading Table : bronze.inventory_snapshots | ' + CONVERT(NVARCHAR, GETDATE(), 120);
-        INSERT INTO [RetailDB].[bronze].[inventory_snapshots]
-        (
-             [snapshot_date]
-            ,[product_id]
-            ,[product_name]
-            ,[sku]
-            ,[category]
-            ,[stock_on_hand]
-            ,[stock_reserved]
-            ,[stock_available]
-            ,[reorder_level]
-            ,[unit_cost]
-            ,[unit_price]
-            ,[inventory_value]
-            ,[warehouse_location]
-            ,[store_id]    
-        )
-        SELECT  
-             [snapshot_date]
-            ,[product_id]
-            ,[product_name]
-            ,[sku]
-            ,[category]
-            ,[stock_on_hand]
-            ,[stock_reserved]
-            ,[stock_available]
-            ,[reorder_level]
-            ,[unit_cost]
-            ,[unit_price]
-            ,[inventory_value]
-            ,[warehouse_location]
-            ,[store_id]
-        FROM [TestDB].[bronze].[inventory_snapshots] ;
+        BULK INSERT bronze.inventory_snapshots
+        FROM '/data/raw_inventory_snapshots.csv'
+        WITH(
+                FORMAT = 'CSV',
+                FIRSTROW = 2,
+                FIELDTERMINATOR = ',',
+                FIELDQUOTE = '"',
+                ROWTERMINATOR = '0x0a',
+                TABLOCK
+        );
 
         SET @end_time = GETDATE() ;
 
@@ -267,53 +169,16 @@ BEGIN
         TRUNCATE table bronze.products ;
 
         PRINT '>> [INFO] Loading Table : bronze.products | ' + CAST(DATEDIFF(SECOND , @start_time, @end_time) AS NVARCHAR) + ' second' ;
-        INSERT INTO [RetailDB].[bronze].[products]
-        (
-             [product_id]
-            ,[sku]
-            ,[product_name]
-            ,[brand]
-            ,[category]
-            ,[sub_category]
-            ,[department]
-            ,[base_price_usd]
-            ,[cost_price_usd]
-            ,[gross_margin_pct]
-            ,[weight_kg]
-            ,[is_available]
-            ,[stock_quantity]
-            ,[reorder_level]
-            ,[supplier_name]
-            ,[supplier_country]
-            ,[warranty_years]
-            ,[rating_avg]
-            ,[review_count]
-            ,[launched_date]
-            ,[product_url]    
-        )
-        SELECT 
-             [product_id]
-            ,[sku]
-            ,[product_name]
-            ,[brand]
-            ,[category]
-            ,[sub_category]
-            ,[department]
-            ,[base_price_usd]
-            ,[cost_price_usd]
-            ,[gross_margin_pct]
-            ,[weight_kg]
-            ,[is_available]
-            ,[stock_quantity]
-            ,[reorder_level]
-            ,[supplier_name]
-            ,[supplier_country]
-            ,[warranty_years]
-            ,[rating_avg]
-            ,[review_count]
-            ,[launched_date]
-            ,[product_url]
-        FROM [TestDB].[bronze].[products] ;
+        BULK INSERT bronze.products
+        FROM '/data/raw_products.csv'
+        WITH(
+                FORMAT = 'CSV',
+                FIRSTROW = 2,
+                FIELDTERMINATOR = ',',
+                FIELDQUOTE = '"',
+                ROWTERMINATOR = '0x0a',
+                TABLOCK
+        ) ;
 
         SET @end_time = GETDATE() ;
 
@@ -326,45 +191,16 @@ BEGIN
         TRUNCATE table bronze.returns ;
 
         PRINT '>> [INFO] Loading Table : bronze.returns | ' + CAST(DATEDIFF(SECOND , @start_time, @end_time) AS NVARCHAR) + ' second' ;
-        INSERT INTO [RetailDB].[bronze].[returns]
-        (
-             [return_id]
-            ,[original_txn_id]
-            ,[original_order_id]
-            ,[customer_id]
-            ,[customer_name]
-            ,[product_id]
-            ,[product_name]
-            ,[quantity_returned]
-            ,[return_date]
-            ,[return_reason]
-            ,[refund_amount]
-            ,[refund_method]
-            ,[return_channel]
-            ,[restocked]
-            ,[return_status]
-            ,[handled_by_emp_id]
-            ,[notes] 
-        )
-        SELECT 
-             [return_id]
-            ,[original_txn_id]
-            ,[original_order_id]
-            ,[customer_id]
-            ,[customer_name]
-            ,[product_id]
-            ,[product_name]
-            ,[quantity_returned]
-            ,[return_date]
-            ,[return_reason]
-            ,[refund_amount]
-            ,[refund_method]
-            ,[return_channel]
-            ,[restocked]
-            ,[return_status]
-            ,[handled_by_emp_id]
-            ,[notes]
-        FROM [TestDB].[bronze].[returns] ;
+        BULK INSERT bronze.returns
+        FROM '/data/raw_returns.csv'
+        WITH(
+                FORMAT = 'CSV',
+                FIRSTROW = 2,
+                FIELDTERMINATOR = ',',
+                FIELDQUOTE = '"',
+                ROWTERMINATOR = '0x0a',
+                TABLOCK
+        ) ;
 
         SET @end_time = GETDATE() ;
 
@@ -377,37 +213,16 @@ BEGIN
         TRUNCATE table bronze.reviews ;
 
         PRINT '>> [INFO] Loading Table : bronze.reviews | ' + CAST(DATEDIFF(SECOND , @start_time, @end_time) AS NVARCHAR) + ' second' ;
-        INSERT INTO [RetailDB].[bronze].[reviews]
-        (
-             [review_id]
-            ,[txn_id]
-            ,[customer_id]
-            ,[customer_name]
-            ,[product_id]
-            ,[product_name]
-            ,[rating]
-            ,[rating_text]
-            ,[review_date]
-            ,[verified_purchase]
-            ,[helpful_votes]
-            ,[review_channel]
-            ,[review_title]   
-        )
-        SELECT
-             [review_id]
-            ,[txn_id]
-            ,[customer_id]
-            ,[customer_name]
-            ,[product_id]
-            ,[product_name]
-            ,[rating]
-            ,[rating_text]
-            ,[review_date]
-            ,[verified_purchase]
-            ,[helpful_votes]
-            ,[review_channel]
-            ,[review_title]
-        FROM [TestDB].[bronze].[reviews] ;
+        BULK INSERT bronze.reviews
+        FROM '/data/raw_reviews.csv'
+        WITH(
+                FORMAT = 'CSV',
+                FIRSTROW = 2,
+                FIELDTERMINATOR = ',',
+                FIELDQUOTE = '"',
+                ROWTERMINATOR = '0x0a',
+                TABLOCK
+        ) ;
 
         SET @end_time = GETDATE() ;
 
@@ -420,133 +235,16 @@ BEGIN
         TRUNCATE table bronze.sales_transactions ;
 
         PRINT '>> [INFO] Loading Table : bronze.sales_transactions | ' + CAST(DATEDIFF(SECOND , @start_time, @end_time) AS NVARCHAR) + ' second' ;
-        INSERT INTO [RetailDB].[bronze].[sales_transactions]
-        (
-            [transaction_id]
-            ,[order_id]
-            ,[order_line_number]
-            ,[order_date]
-            ,[order_year]
-            ,[order_month]
-            ,[order_month_name]
-            ,[order_quarter]
-            ,[order_day_of_week]
-            ,[ship_date]
-            ,[delivery_date]
-            ,[customer_id]
-            ,[customer_full_name]
-            ,[customer_first_name]
-            ,[customer_last_name]
-            ,[customer_email]
-            ,[customer_phone]
-            ,[customer_city]
-            ,[customer_state]
-            ,[customer_zip]
-            ,[customer_region]
-            ,[customer_segment]
-            ,[customer_gender]
-            ,[customer_age]
-            ,[customer_age_group]
-            ,[product_id]
-            ,[product_name]
-            ,[sku]
-            ,[brand]
-            ,[category]
-            ,[sub_category]
-            ,[department]
-            ,[quantity_ordered]
-            ,[unit_list_price]
-            ,[discount_pct]
-            ,[unit_selling_price]
-            ,[line_total_before_tax]
-            ,[tax_rate_pct]
-            ,[tax_amount]
-            ,[line_total_with_tax]
-            ,[store_id]
-            ,[store_name]
-            ,[store_city]
-            ,[store_state]
-            ,[store_region]
-            ,[store_type]
-            ,[employee_id]
-            ,[employee_name]
-            ,[employee_job_title]
-            ,[promo_id]
-            ,[promo_name]
-            ,[sales_channel]
-            ,[payment_method]
-            ,[shipping_method]
-            ,[order_status]
-            ,[is_returned]
-            ,[cost_price]
-            ,[gross_profit]
-            ,[data_source]
-            ,[record_created_ts]
-            ,[last_modified_ts]    
-        )
-        SELECT
-            [transaction_id]
-            ,[order_id]
-            ,[order_line_number]
-            ,[order_date]
-            ,[order_year]
-            ,[order_month]
-            ,[order_month_name]
-            ,[order_quarter]
-            ,[order_day_of_week]
-            ,[ship_date]
-            ,[delivery_date]
-            ,[customer_id]
-            ,[customer_full_name]
-            ,[customer_first_name]
-            ,[customer_last_name]
-            ,[customer_email]
-            ,[customer_phone]
-            ,[customer_city]
-            ,[customer_state]
-            ,[customer_zip]
-            ,[customer_region]
-            ,[customer_segment]
-            ,[customer_gender]
-            ,[customer_age]
-            ,[customer_age_group]
-            ,[product_id]
-            ,[product_name]
-            ,[sku]
-            ,[brand]
-            ,[category]
-            ,[sub_category]
-            ,[department]
-            ,[quantity_ordered]
-            ,[unit_list_price]
-            ,[discount_pct]
-            ,[unit_selling_price]
-            ,[line_total_before_tax]
-            ,[tax_rate_pct]
-            ,[tax_amount]
-            ,[line_total_with_tax]
-            ,[store_id]
-            ,[store_name]
-            ,[store_city]
-            ,[store_state]
-            ,[store_region]
-            ,[store_type]
-            ,[employee_id]
-            ,[employee_name]
-            ,[employee_job_title]
-            ,[promo_id]
-            ,[promo_name]
-            ,[sales_channel]
-            ,[payment_method]
-            ,[shipping_method]
-            ,[order_status]
-            ,[is_returned]
-            ,[cost_price]
-            ,[gross_profit]
-            ,[data_source]
-            ,[record_created_ts]
-            ,[last_modified_ts]
-        FROM [TestDB].[bronze].[sales_transactions] ;
+        BULK INSERT bronze.sales_transactions
+        FROM '/data/raw_sales_transactions.csv'
+        WITH(
+                FORMAT = 'CSV',
+                FIRSTROW = 2,
+                FIELDTERMINATOR = ',',
+                FIELDQUOTE = '"',
+                ROWTERMINATOR = '0x0a',
+                TABLOCK
+        ) ;
 
         SET @end_time = GETDATE() ;
 
@@ -559,51 +257,16 @@ BEGIN
         TRUNCATE table bronze.stores ;
 
         PRINT '>> [INFO] Loading Table : bronze.stores | ' + CAST(DATEDIFF(SECOND , @start_time, @end_time) AS NVARCHAR) + ' second' ;
-        INSERT INTO [RetailDB].[bronze].[stores]
-        (
-             [store_id]
-            ,[store_name]
-            ,[store_type]
-            ,[address]
-            ,[city]
-            ,[state]
-            ,[state_full]
-            ,[zip_code]
-            ,[country]
-            ,[region]
-            ,[district]
-            ,[phone]
-            ,[manager_name]
-            ,[opened_date]
-            ,[sq_footage]
-            ,[num_employees]
-            ,[annual_rent_usd]
-            ,[is_active]
-            ,[has_parking]
-            ,[has_cafe]
-        )
-        SELECT 
-             [store_id]
-            ,[store_name]
-            ,[store_type]
-            ,[address]
-            ,[city]
-            ,[state]
-            ,[state_full]
-            ,[zip_code]
-            ,[country]
-            ,[region]
-            ,[district]
-            ,[phone]
-            ,[manager_name]
-            ,[opened_date]
-            ,[sq_footage]
-            ,[num_employees]
-            ,[annual_rent_usd]
-            ,[is_active]
-            ,[has_parking]
-            ,[has_cafe]
-        FROM [TestDB].[bronze].[stores] ;
+        BULK INSERT bronze.stores
+        FROM '/data/raw_stores.csv'
+        WITH(
+                FORMAT = 'CSV',
+                FIRSTROW = 2,
+                FIELDTERMINATOR = ',',
+                FIELDQUOTE = '"',
+                ROWTERMINATOR = '0x0a',
+                TABLOCK 
+        ) ;
 
         SET @end_time = GETDATE() ;
 
