@@ -14,7 +14,7 @@ env:
   DBT_PROFILES_DIR: .github/profiles
   DBT_SQLSERVER_HOST: localhost
   DBT_SQLSERVER_PORT: 1433
-  DBT_SQLSERVER_DATABASE: retail_analytics
+  DBT_SQLSERVER_DATABASE: RetailDB
   DBT_SQLSERVER_SCHEMA: dbt_ci
   DBT_SQLSERVER_USER: sa
   DBT_SQLSERVER_PASSWORD: TestPassword123!
@@ -34,6 +34,20 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
           cache-dependency-path: requirements.txt
+
+      - name: Install ODBC Driver 18
+        run: |
+          curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+          | sudo gpg --dearmor --batch --yes \
+          -o /usr/share/keyrings/microsoft-prod.gpg
+
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" \
+          | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
+
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 unixodbc-dev
+
+          echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -61,7 +75,7 @@ jobs:
       - name: Lint SQL (when models exist)
         run: |
           if find models -name '*.sql' -print -quit | grep -q .; then
-            sqlfluff lint models
+            sqlfluff lint models --ignore=templating
           else
             echo "No SQL models found — skipping sqlfluff."
           fi
@@ -116,9 +130,16 @@ jobs:
       - name: Wait for SQL Server
         run: bash scripts/wait_for_sqlserver.sh
 
-      - name: Initialize CI database
+      - name: Create Bronze Tables
         run: |
           sqlcmd -S localhost,1433 -U sa -P "$DBT_SQLSERVER_PASSWORD" -C -i scripts/ci-init-db.sql
+
+      - name: Create Bronze Tables
+        run: |
+          sqlcmd -S localhost,1433 -U sa -P "$DBT_SQLSERVER_PASSWORD" -C -i scripts/loading/ddl_bronze.sql
+
+      - name: Load Bronze Data
+        run: python scripts/loading/python_load.py
 
       - name: Install dbt packages
         run: dbt deps

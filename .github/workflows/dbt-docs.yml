@@ -15,7 +15,7 @@ env:
   DBT_PROFILES_DIR: .github/profiles
   DBT_SQLSERVER_HOST: localhost
   DBT_SQLSERVER_PORT: 1433
-  DBT_SQLSERVER_DATABASE: retail_analytics
+  DBT_SQLSERVER_DATABASE: RetailDB
   DBT_SQLSERVER_SCHEMA: dbt_ci
   DBT_SQLSERVER_USER: sa
   DBT_SQLSERVER_PASSWORD: TestPassword123!
@@ -78,6 +78,14 @@ jobs:
       - name: Initialize CI database
         run: |
           sqlcmd -S localhost,1433 -U sa -P "$DBT_SQLSERVER_PASSWORD" -C -i scripts/ci-init-db.sql
+
+      - name: Create Bronze Tables
+        run: |
+          sqlcmd -S localhost,1433 -U sa -P "$DBT_SQLSERVER_PASSWORD" -C -i scripts/loading/ddl_bronze.sql
+
+      - name: Load Bronze Data
+        run: |
+          python scripts/loading/python_load.py
 
       - name: Generate dbt docs
         run: |

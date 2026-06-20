@@ -1,0 +1,286 @@
+================================================================================
+DBT ANALYTICS ENGINEERING — CI/CD PIPELINE FAILURE ANALYSIS
+================================================================================
+Generated: 2026-06-20
+Repository: Ritik574-coder/dbt-analytics-engineering
+Branch with failures: dbt_branch (PR to main)
+
+SUMMARY
+-------
+All three GitHub Actions workflows are currently failing:
+
+  Workflow          Latest failed run   Failing job/step
+  ----------------  ------------------  ------------------------------------------
+  dbt CI            27859117241         dbt integration → Load Bronze Data
+  dbt Docs          27859117248         Generate documentation → Generate dbt docs
+  dbt CD            27839146670         Deploy (prod) → dbt debug
+
+The "Lint & parse" CI job passes. Failures are in database connectivity / setup.
+
+
+================================================================================
+ISSUE 1 — DATABASE NAME MISMATCH (CI + DOCS) — PRIMARY BLOCKER
+================================================================================
+
+SEVERITY: Critical (blocks CI and Docs right now)
+
+EXACT REASON:
+  GitHub Actions workflows set:
+    DBT_SQLSERVER_DATABASE: retail_analytics
+
+  But the database initialization script creates a different database:
+    scripts/ci-init-db.sql  →  CREATE DATABASE RetailDB
+
+  When python_load.py and dbt connect, they use the env var
+  DBT_SQLSERVER_DATABASE=retail_analytics. That database does NOT exist
+  on the CI SQL Server container. SQL Server returns error 4060:
+
+    Cannot open database "retail_analytics" requested by the login.
+    The login failed. (4060)
+
+  Evidence from latest CI run (27859117241), step "Load Bronze Data":
+    - ci-init-db.sql succeeded: "Changed database context to 'RetailDB'."
+    - python_load.py failed immediately trying to connect to retail_analytics
+
+  Same error in dbt Docs run (27859117248), step "Generate dbt docs":
+    dbt docs generate cannot connect because retail_analytics does not exist.
+
+AFFECTED FILES:
+  - .github/workflows/dbt-ci.yml        (remote/pushed version still has retail_analytics)
+  - .github/workflows/dbt-docs.yml      (still has retail_analytics)
+  - scripts/ci-init-db.sql              (creates RetailDB)
+  - scripts/loading/python_load.py      (defaults to RetailDB, but CI env overrides it)
+  - models/staging/_retail__sources.yml (correctly references database: RetailDB)
+  - profiles.example.yml / .env.example (default to retail_analytics — confusing)
+
+NOTE:
+  You have a LOCAL uncommitted fix in dbt-ci.yml changing retail_analytics → RetailDB,
+  but it is NOT pushed to GitHub yet, and dbt-docs.yml was NOT updated.
+
+HOW TO FIX:
+  1. Use ONE database name everywhere. Recommended: RetailDB (matches init script,
+     DDL, sources, and bronze load scripts).
+
+  2. Update workflow env vars:
+       .github/workflows/dbt-ci.yml:
+         DBT_SQLSERVER_DATABASE: RetailDB
+
+       .github/workflows/dbt-docs.yml:
+         DBT_SQLSERVER_DATABASE: RetailDB
+
+  3. Commit and push both workflow changes to dbt_branch.
+
+  4. Optionally align defaults for local dev consistency:
+       .env.example          → DBT_SQLSERVER_DATABASE=RetailDB
+       profiles.example.yml  → default 'RetailDB' instead of 'retail_analytics'
+
+  5. Re-run CI after push. Bronze load + dbt run should proceed past current failure.
+
+
+================================================================================
+ISSUE 2 — BRONZE TABLES NOT LOADED (CI — secondary failure after Issue 1)
+================================================================================
+
+SEVERITY: High (appeared in earlier CI runs once DB connection partially worked)
+
+EXACT REASON:
+  In CI run 27840802070, dbt run reached execution but all 8 staging models failed:
+
+    Invalid object name 'RetailDB.bronze.customers'. (208)
+    Invalid object name 'RetailDB.bronze.employees'. (208)
+    ... (same for all bronze source tables)
+
+  This means dbt connected, but bronze tables were missing or empty.
+  Root cause chain:
+    a) python_load.py never loaded data (database name mismatch), OR
+    b) ddl_bronze.sql was not run before dbt run, OR
+    c) Load step was missing from an older workflow version
+
+  Current workflow (dbt-ci.yml) does have the correct sequence:
+    1. ci-init-db.sql      → create RetailDB + schemas
+    2. ddl_bronze.sql      → create bronze tables
+    3. python_load.py      → load CSV data into bronze.*
+    4. dbt run             → build staging/intermediate models
+
+  Fixing Issue 1 should allow steps 1–3 to complete and prevent this error.
+
+HOW TO FIX:
+  1. Fix Issue 1 first (RetailDB name alignment).
+  2. Verify CI log shows after python_load.py:
+       "Loaded N rows into bronze.customers" (for each table)
+  3. If tables still missing, confirm CSV files exist in repo:
+       scripts/raw_dataset/csv_data_file/*.csv  (all 8 files present ✓)
+  4. Confirm ddl_bronze.sql runs without error before python_load.py.
+
+
+================================================================================
+ISSUE 3 — CD PIPELINE CANNOT REACH PRODUCTION SQL SERVER
+================================================================================
+
+SEVERITY: Critical (blocks all CD deployments)
+
+EXACT REASON:
+  CD workflow (dbt-cd.yml) fails at "dbt debug" with:
+
+    Login timeout expired (HYT00)
+    Connection test: [ERROR]
+
+  This means the GitHub Actions runner waited ~60+ seconds and could NOT
+  establish a TCP connection to the SQL Server defined in GitHub Secrets.
+
+  CD does NOT use a local SQL Server container. It connects to a real server
+  via repository/environment secrets:
+    DBT_SQLSERVER_HOST
+    DBT_SQLSERVER_PORT
+    DBT_SQLSERVER_DATABASE
+    DBT_SQLSERVER_SCHEMA
+    DBT_SQLSERVER_USER
+    DBT_SQLSERVER_PASSWORD
+
+  Login timeout (not "login failed") typically means:
+    - Host is unreachable (wrong IP/hostname, localhost, private network)
+    - Firewall blocks GitHub Actions runner IP ranges
+    - SQL Server not listening on the configured port
+    - Azure SQL / cloud DB requires firewall rule for GitHub Actions
+    - Secrets not configured in the "production" GitHub Environment
+
+  All recent CD runs fail the same way (runs: 27839146670, 27750986715,
+  27735843782, 27623198237).
+
+HOW TO FIX:
+  1. In GitHub → Settings → Environments → production → verify ALL 6
+     DBT_SQLSERVER_* secrets are set (not empty, not localhost).
+
+  2. DBT_SQLSERVER_HOST must be a publicly reachable hostname/IP
+     (e.g. your Azure SQL server: myserver.database.windows.net).
+     localhost / 127.0.0.1 will ALWAYS fail in GitHub Actions.
+
+  3. Open firewall for GitHub Actions:
+     - Azure SQL: enable "Allow Azure services" OR add GitHub IP ranges
+     - On-prem SQL Server: allow inbound TCP 1433 from GitHub Actions IPs
+       (or use a self-hosted runner inside your network)
+
+  4. Verify SQL Server accepts SQL authentication (not Windows-only auth).
+
+  5. Test connectivity manually from outside your network:
+       sqlcmd -S <host>,<port> -U <user> -P <password> -C -Q "SELECT 1"
+
+  6. Ensure ODBC Driver 18 settings match your server (trust_cert: true is
+     already set in profiles.example.yml).
+
+  7. Re-run CD via Actions → dbt CD → Run workflow.
+
+
+================================================================================
+ISSUE 4 — INCONSISTENT DATABASE NAMING ACROSS PROJECT
+================================================================================
+
+SEVERITY: Medium (causes confusion and repeat failures)
+
+EXACT REASON:
+  The project uses two different database names:
+    - RetailDB        → ci-init-db.sql, ddl_bronze.sql, sources.yml, proc scripts
+    - retail_analytics → workflows, .env.example, profiles.example.yml
+
+  dbt profile connects to one database (from env var), while source() macros
+  hardcode database: RetailDB in _retail__sources.yml. This can work in SQL
+  Server (cross-database queries) ONLY if both databases exist. In CI, only
+  RetailDB is created — retail_analytics never exists.
+
+HOW TO FIX:
+  Standardize on RetailDB everywhere, OR rename ci-init-db.sql to create
+  retail_analytics instead. Pick one name and update all references.
+
+
+================================================================================
+ISSUE 5 — DOCS WORKFLOW MISSING BRONZE SETUP (minor / future)
+================================================================================
+
+SEVERITY: Low (docs generate may work without bronze data, but DB must exist)
+
+EXACT REASON:
+  dbt-docs.yml only runs ci-init-db.sql, then dbt docs generate.
+  It does NOT run ddl_bronze.sql or python_load.py.
+
+  dbt docs generate needs a valid DB connection but does not require bronze
+  data. Fixing the database name (Issue 1) should be enough for Docs to pass.
+
+HOW TO FIX:
+  1. Fix DBT_SQLSERVER_DATABASE in dbt-docs.yml → RetailDB.
+  2. No bronze load needed unless you add compile/run steps that query sources.
+
+
+================================================================================
+ISSUE 6 — WORKFLOW HYGIENE (non-blocking but worth fixing)
+================================================================================
+
+SEVERITY: Low
+
+EXACT REASON:
+  a) dbt-ci.yml has two steps both named "Create Bronze Tables" (lines 133–139).
+     Makes debugging CI logs harder.
+
+  b) SQL Server service health check uses:
+       /opt/mssql-tools18/bin/sqlcmd
+     inside the mcr.microsoft.com/mssql/server:2022-latest container.
+     The container image may ship sqlcmd at a different path. CI currently
+     works (sqlcmd on the runner host is used for steps), but the service
+     health check path may be unreliable.
+
+  c) dbt_project.yml has unused config paths (marts, seeds, snapshots) —
+     warnings only, not causing failures.
+
+HOW TO FIX:
+  a) Rename steps: "Initialize CI database" and "Create bronze DDL tables".
+  b) Change health-cmd to use runner-side check or correct container path:
+       /opt/mssql-tools18/bin/sqlcmd  OR  /opt/mssql-tools/bin/sqlcmd
+  c) Add marts/seeds/snapshots content or remove unused config blocks.
+
+
+================================================================================
+RECOMMENDED FIX ORDER
+================================================================================
+
+  Step  Action                                              Expected result
+  ----  --------------------------------------------------  -------------------------
+  1     Push RetailDB fix to dbt-ci.yml AND dbt-docs.yml    CI + Docs pass DB connect
+  2     Verify bronze load + dbt run/test in CI logs        Full CI green
+  3     Fix CD secrets + firewall for production SQL Server CD deploys succeed
+  4     Align .env.example / profiles.example.yml           Local dev matches CI
+
+
+================================================================================
+WHAT IS ALREADY WORKING
+================================================================================
+
+  ✓ Lint & parse job (YAML validation, dbt parse, sqlfluff) — passes
+  ✓ Python dependencies install (dbt-core, pandas, sqlalchemy, pyodbc)
+  ✓ ODBC Driver 18 install on Ubuntu runner
+  ✓ SQL Server container starts and accepts sqlcmd from runner
+  ✓ ci-init-db.sql creates RetailDB + bronze + dbt_ci schemas
+  ✓ ddl_bronze.sql creates bronze tables (when run against RetailDB)
+  ✓ CSV seed files exist in scripts/raw_dataset/csv_data_file/
+  ✓ dbt models compile (35 models found in latest parse)
+
+
+================================================================================
+QUICK REFERENCE — EXACT ERROR MESSAGES FROM GITHUB ACTIONS
+================================================================================
+
+CI (latest):
+  sqlalchemy.exc.ProgrammingError: Cannot open database "retail_analytics"
+  requested by the login. The login failed. (4060)
+
+Docs (latest):
+  Database Error: Cannot open database "retail_analytics" requested by the
+  login. The login failed. (4060)
+
+CI (earlier, after partial progress):
+  Invalid object name 'RetailDB.bronze.customers'. (208)
+
+CD (all recent runs):
+  Login timeout expired (HYT00) — Connection test: [ERROR]
+
+================================================================================
+END OF REPORT
+================================================================================
