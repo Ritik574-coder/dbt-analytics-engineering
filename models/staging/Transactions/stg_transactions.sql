@@ -1,5 +1,6 @@
-SELECT
+SELECT 
      transaction_id
+    ,rn
     ,order_id
     ,order_line_number
     ,order_date
@@ -60,4 +61,14 @@ SELECT
     ,data_source
     ,record_created_ts
     ,last_modified_ts
-FROM {{ source('bronze', 'sales_transactions') }} ;
+FROM 
+(
+SELECT 
+    ROW_NUMBER() OVER(
+            PARTITION BY transaction_id
+            ORDER BY transaction_id
+    ) AS rn,
+    *
+FROM {{ source('bronze', 'sales_transactions') }}
+WHERE transaction_id IS NOT NULL 
+)t WHERE rn = 1;

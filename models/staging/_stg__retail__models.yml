@@ -485,6 +485,7 @@ models:
           occurs downstream. This field should be considered the primary identifier
           for transaction records within this model.
         tests:
+          - unique
           - not_null
 
       - name: order_line_number
