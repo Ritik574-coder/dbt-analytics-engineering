@@ -1,11 +1,14 @@
 -- ============================================================================
 -- Model: int_customer_location
+
 -- Purpose:
 --   Standardizes customer location attributes by correcting common data quality
 --   issues such as missing values, typographical errors, inconsistent casing,
 --   invalid state abbreviations, invalid ZIP codes, and non-standard country
 --   names. This model prepares clean and consistent geographic information for
 --   downstream analytical models.
+
+-- Maintainer: Ritik   
 -- ============================================================================
 
 -- dbt.TitleCase is a  custom function taht help me to convert string into title case 

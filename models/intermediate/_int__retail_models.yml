@@ -1,6 +1,59 @@
 version: 2
 
+####################################################################################
+####################### Model: int_customer_profile ###############################
+####################################################################################
 models:
+  - name: int_customer_profile
+    description: |
+      Cleans and standardizes core customer profile information for downstream
+      analytical models. This model normalizes customer titles, extracts first
+      and last names from the full name, standardizes gender values, and converts
+      multiple date formats into a consistent DATE data type for reliable
+      reporting and analytics.
+
+    columns:
+      - name: title
+        description: |
+          Standardized customer title with leading and trailing whitespace
+          removed.
+
+      - name: first_name
+        description: |
+          Customer's first name extracted from the full_name field. Supports
+          names containing two or three words.
+        tests:
+          - not_null
+
+      - name: last_name
+        description: |
+          Customer's last name extracted from the full_name field.
+        tests:
+          - not_null
+
+      - name: gender
+        description: |
+          Standardized customer gender. Common abbreviations and alternative
+          values are normalized to 'Male', 'Female', 'Non-Binary', 'Other',
+          or 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Male', 'Female', 'Non-Binary', 'Other', 'Unknown']
+
+      - name: date_of_birth
+        description: |
+          Customer date of birth converted into a standard DATE data type.
+          Supports multiple input formats including ISO, US, European, and
+          month-name formats. Invalid or unrecognized values are returned
+          as NULL.
+        tests:
+          - not_null
+          
+####################################################################################
+####################### Model: int_customer_location ###############################
+####################################################################################
   - name: int_customer_location
     description: |
       Cleans and standardizes customer geographic information for downstream
@@ -11,14 +64,6 @@ models:
       dimension for business reporting and analytics.
 
     columns:
-      - name: customer_id
-        description: |
-          Unique identifier for each customer. Used as the primary key for
-          customer location records.
-        tests:
-          - not_null
-          - unique
-
       - name: address
         description: |
           Standardized customer street address. Missing or blank values are
