@@ -6,36 +6,44 @@ version: 2
 models:
   - name: int_customer_profile
     description: |
-      Cleans and standardizes core customer profile information for downstream
-      analytical models. This model normalizes customer titles, extracts first
-      and last names from the full name, standardizes gender values, and converts
-      multiple date formats into a consistent DATE data type for reliable
-      reporting and analytics.
+      Creates a trusted customer profile dataset by standardizing personal
+      attributes and resolving inconsistencies across customer records. The
+      model cleans customer titles, derives first and last names from the full
+      name, normalizes gender values into business-defined categories, and
+      converts multiple date formats into a consistent DATE data type. The
+      resulting dataset provides reliable customer profile information for
+      segmentation, demographic analysis, personalization, and downstream
+      dimensional models.
 
     columns:
       - name: title
         description: |
-          Standardized customer title with leading and trailing whitespace
-          removed.
+          Customer title standardized by removing leading and trailing whitespace.
+          Preserves the original honorific (for example, Mr, Mrs, Ms, or Dr etc.) while
+          ensuring consistent formatting across customer records.
 
       - name: first_name
         description: |
-          Customer's first name extracted from the full_name field. Supports
-          names containing two or three words.
+          Customer first name extracted from the full_name attribute. Supports
+          both two-part and three-part names to provide a consistent first-name
+          field for customer identification and personalization.
         tests:
           - not_null
 
       - name: last_name
         description: |
-          Customer's last name extracted from the full_name field.
+          Customer last name extracted from the full_name attribute, providing a
+          standardized surname for customer reporting and identity-related
+          analysis.
         tests:
           - not_null
 
       - name: gender
         description: |
-          Standardized customer gender. Common abbreviations and alternative
-          values are normalized to 'Male', 'Female', 'Non-Binary', 'Other',
-          or 'Unknown'.
+          Standardized customer gender derived from multiple source
+          representations. Abbreviations and inconsistent values are normalized
+          into the business-defined categories 'Male', 'Female', 'Non-Binary',
+          'Other', and 'Unknown' to ensure consistent demographic analysis.
         tests:
           - not_null
           - accepted_values:
@@ -44,10 +52,11 @@ models:
 
       - name: date_of_birth
         description: |
-          Customer date of birth converted into a standard DATE data type.
-          Supports multiple input formats including ISO, US, European, and
-          month-name formats. Invalid or unrecognized values are returned
-          as NULL.
+          Customer date of birth converted into a standardized DATE data type.
+          Multiple source date formats are supported, including ISO, US,
+          European, and month-name formats. Invalid or unrecognized values are
+          returned as NULL to preserve data quality while enabling accurate
+          age-based analysis and customer segmentation.
         tests:
           - not_null
           
@@ -56,32 +65,40 @@ models:
 ####################################################################################
   - name: int_customers_contact
     description: |
-      Cleans and standardizes customer contact information for downstream
-      analytical models. This model validates and normalizes email addresses,
-      formats phone numbers into a consistent structure, and standardizes
-      preferred communication channels to improve data quality and reporting.
+      Creates a trusted customer contact dataset by improving the quality and
+      consistency of customer communication attributes. The model validates and
+      repairs email addresses, standardizes phone numbers into a common format,
+      and normalizes preferred communication channels into business-defined
+      categories. The resulting dataset provides reliable contact information
+      for CRM processes, customer engagement, marketing campaigns, and
+      downstream analytical models.
 
     columns:
       - name: email
         description: |
-          Standardized customer email address. Invalid or missing email
-          addresses are replaced with 'Unknown'. Common domain spelling
-          mistakes are automatically corrected.
+          Customer email address after validation and standardization. Invalid,
+          incomplete, or malformed email addresses are replaced with 'Unknown',
+          while common domain spelling mistakes and duplicate '@' characters are
+          automatically corrected to improve communication reliability.
         tests:
           - not_null
 
       - name: phone
         description: |
-          Standardized customer phone number formatted as
-          +1 (XXX) XXX-XXXX. Invalid or missing phone numbers are
+          Customer phone number standardized into the format
+          '+1 (XXX) XXX-XXXX'. Supports multiple source formats, including
+          continuous digits, hyphen-separated values, dotted notation, and
+          parenthesized area codes. Invalid or missing phone numbers are
           replaced with 'Unknown'.
         tests:
           - not_null
 
       - name: preferred_channel
         description: |
-          Standardized customer preferred communication channel.
-          Source values are normalized into business-friendly categories.
+          Customer's preferred communication channel normalized into
+          business-standard categories. Multiple source representations are
+          consolidated into consistent values to support reliable communication
+          preference analysis and customer engagement reporting.
         tests:
           - not_null
           - accepted_values:
@@ -90,63 +107,67 @@ models:
                   ['Mobile App', 'In Store', 'Catalog', 'Website', 'Phone Call', 'Unknown']
 
 
-
 ####################################################################################
 ####################### Model: int_customer_location ###############################
 ####################################################################################
   - name: int_customer_location
     description: |
-      Cleans and standardizes customer geographic information for downstream
-      analytical models. This model resolves common data quality issues such as
-      missing values, inconsistent capitalization, typographical errors in city
-      names, invalid state abbreviations, malformed ZIP codes, and inconsistent
-      country values. It provides a reliable and consistent customer location
-      dimension for business reporting and analytics.
+      Creates a trusted customer location dataset by improving the quality and
+      consistency of customer geographic information. The model standardizes
+      addresses, corrects common city name spelling errors, validates state
+      information and ZIP codes, normalizes country values, and replaces missing
+      geographic attributes with business-defined defaults. The resulting dataset
+      supports customer segmentation, geographic analysis, regional reporting,
+      territory management, and downstream dimensional models.
 
     columns:
       - name: address
         description: |
-          Standardized customer street address. Missing or blank values are
-          replaced with 'Unknown', while valid addresses are converted to
-          Title Case and trimmed of leading and trailing whitespace.
+          Customer street address standardized by trimming whitespace and converting
+          text into Title Case. Missing or blank addresses are replaced with
+          'Unknown' to maintain consistent address records across customer data.
         tests:
           - not_null
 
       - name: city
         description: |
-          Standardized customer city name. Common spelling mistakes are corrected,
-          text is converted to Title Case, and missing or blank values are
-          replaced with 'Unknown'.
+          Customer city name standardized by correcting common spelling mistakes,
+          removing unnecessary whitespace, and converting values into Title Case.
+          Missing or blank values are assigned to 'Unknown' to maintain consistent
+          geographic reporting.
         tests:
           - not_null
 
       - name: state_abbr
         description: |
-          Two-letter uppercase state abbreviation. Invalid, blank, null, or
-          incorrectly formatted values are replaced with 'Unknown'.
+          Standardized two-character state abbreviation. Values that are missing,
+          blank, or do not conform to the expected two-letter format are replaced
+          with 'Unknown' to improve geographic data consistency.
         tests:
           - not_null
 
       - name: state
         description: |
-          Full state name for the customer's location. Leading and trailing
-          whitespace is removed, and missing or blank values are replaced
-          with 'Unknown'.
+          Customer state or province name after whitespace normalization. Missing
+          or blank values are replaced with 'Unknown' to ensure complete geographic
+          attributes for downstream analysis.
         tests:
           - not_null
 
       - name: zip_code
         description: |
-          Five-digit ZIP code. Invalid, non-numeric, null, or incorrectly
-          formatted ZIP codes are replaced with 0.
+          Customer ZIP code validated against the expected five-digit numeric
+          format. Invalid, non-numeric, or incomplete ZIP codes are replaced with
+          0 to clearly identify records containing invalid postal information.
         tests:
           - not_null
 
       - name: country
         description: |
-          Standardized country name. Multiple representations of the United
-          States (USA, US, U.S.A., United States) are normalized to
-          'United States'. All other values are categorized as 'Unknown'.
+          Standardized customer country name. Multiple representations of the
+          United States are consolidated into the business-standard value
+          'United States', while unrecognized or unsupported values are assigned
+          to 'Unknown'.
         tests:
           - not_null
           - accepted_values:
@@ -155,10 +176,78 @@ models:
 
       - name: region
         description: |
-          Customer geographic region. Missing or blank values are replaced
-          with 'Unknown'.
+          Business-defined geographic region associated with the customer.
+          Missing or blank values are replaced with 'Unknown' to support
+          consistent regional reporting and market analysis.
         tests:
           - not_null
           - accepted_values:
               arguments:
                 values: ['Midwest', 'Northeast', 'South', 'West']
+
+####################################################################################
+####################### Model: int_customer_segmentation ###########################
+####################################################################################
+  - name: int_customer_segmentation
+    description: |
+      Creates a trusted customer segmentation dataset by resolving inconsistencies
+      across customer profile attributes and standardizing business-critical
+      segmentation fields. The model normalizes customer segments and account
+      status values, cleans organization names, converts account creation dates
+      into a consistent DATE data type, and enriches missing annual income values
+      using the median income of customers within the same segment. The resulting
+      dataset provides reliable customer attributes for segmentation, customer
+      analytics, marketing, loyalty reporting, and downstream dimensional models.
+
+    columns:
+      - name: customer_segment
+        description: |
+          Business-defined customer segment used to classify customers based on their
+          relationship value. Missing or blank values are assigned to 'Unknown' to
+          maintain consistent segmentation and prevent null categories in downstream
+          analytical models.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Bronze', 'Silver', 'Gold', 'Platinum', 'Unknown']
+
+      - name: loyalty_points
+        description: |
+          Customer loyalty points converted to an integer data type. Invalid or
+          non-numeric values are returned as NULL to preserve data quality while
+          preventing incorrect numerical calculations.
+
+      - name: annual_income_usd
+        description: |
+          Customer annual income expressed in USD. Missing values are imputed using
+          the median annual income of customers within the same customer segment,
+          reducing the impact of missing data while preserving segment-level income
+          distributions.
+
+      - name: company
+        description: |
+          Standardized company. Leading and trailing whitespace, carriage returns,
+          and line feed characters are removed to eliminate formatting inconsistencies.
+          Missing or empty values are replaced with 'Unknown'.
+        tests:
+          - not_null
+
+      - name: is_active
+        description: |
+          Standardized customer account status derived from multiple source
+          representations. Boolean values, textual statuses, and abbreviated values
+          are normalized into the business-friendly categories 'True', 'False', and
+          'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['True', 'False', 'Unknown']
+
+      - name: account_created_date
+        description: |
+          Customer account creation date converted into a standardized DATE data type.
+          Supports multiple source date formats while resolving regional date format
+          inconsistencies. Invalid or unrecognized values are returned as NULL to
+          preserve temporal data quality.

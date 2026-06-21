@@ -2,11 +2,13 @@
 -- Model: int_customers_contact
 --
 -- Purpose:
---   Standardizes customer contact information by cleaning and validating
---   email addresses, phone numbers, and preferred communication channels.
---   This model corrects common email domain typographical errors, formats
---   phone numbers into a consistent structure, and normalizes customer
---   communication preferences for reliable downstream analytical models.
+--   Creates a trusted customer contact dataset by validating, correcting, and
+--   standardizing customer communication attributes. This model repairs common
+--   email formatting issues and domain typographical errors, transforms phone
+--   numbers into a consistent business format, and normalizes preferred
+--   communication channels into standardized business categories. The resulting
+--   dataset provides reliable contact information for customer communication,
+--   marketing campaigns, CRM operations, and downstream analytical models.
 --
 -- Maintainer: Ritik
 -- ============================================================================

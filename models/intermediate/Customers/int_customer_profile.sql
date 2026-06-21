@@ -2,11 +2,13 @@
 -- Model: int_customer_profile
 --
 -- Purpose:
---   Standardizes customer profile attributes by cleaning and transforming
---   personal information such as titles, names, gender, and date of birth.
---   This model normalizes inconsistent values, extracts first and last names,
---   standardizes gender categories, and converts multiple date formats into a
---   consistent DATE data type for reliable downstream analytical models.
+--   Creates a standardized customer profile dataset by applying business
+--   rules to personal customer attributes. This model derives first and last
+--   names from the full name, normalizes gender values into consistent
+--   categories, and converts multiple source date formats into a reliable
+--   DATE data type. The resulting dataset serves as a trusted foundation for
+--   customer demographics, segmentation, personalization, and downstream
+--   dimensional models.
 --
 -- Maintainer: Ritik
 -- ============================================================================
