@@ -1,0 +1,79 @@
+version: 2
+
+models:
+  - name: int_customer_location
+    description: |
+      Cleans and standardizes customer geographic information for downstream
+      analytical models. This model resolves common data quality issues such as
+      missing values, inconsistent capitalization, typographical errors in city
+      names, invalid state abbreviations, malformed ZIP codes, and inconsistent
+      country values. It provides a reliable and consistent customer location
+      dimension for business reporting and analytics.
+
+    columns:
+      - name: customer_id
+        description: |
+          Unique identifier for each customer. Used as the primary key for
+          customer location records.
+        tests:
+          - not_null
+          - unique
+
+      - name: address
+        description: |
+          Standardized customer street address. Missing or blank values are
+          replaced with 'Unknown', while valid addresses are converted to
+          Title Case and trimmed of leading and trailing whitespace.
+        tests:
+          - not_null
+
+      - name: city
+        description: |
+          Standardized customer city name. Common spelling mistakes are corrected,
+          text is converted to Title Case, and missing or blank values are
+          replaced with 'Unknown'.
+        tests:
+          - not_null
+
+      - name: state_abbr
+        description: |
+          Two-letter uppercase state abbreviation. Invalid, blank, null, or
+          incorrectly formatted values are replaced with 'Unknown'.
+        tests:
+          - not_null
+
+      - name: state
+        description: |
+          Full state name for the customer's location. Leading and trailing
+          whitespace is removed, and missing or blank values are replaced
+          with 'Unknown'.
+        tests:
+          - not_null
+
+      - name: zip_code
+        description: |
+          Five-digit ZIP code. Invalid, non-numeric, null, or incorrectly
+          formatted ZIP codes are replaced with 0.
+        tests:
+          - not_null
+
+      - name: country
+        description: |
+          Standardized country name. Multiple representations of the United
+          States (USA, US, U.S.A., United States) are normalized to
+          'United States'. All other values are categorized as 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['United States', 'Unknown']
+
+      - name: region
+        description: |
+          Customer geographic region. Missing or blank values are replaced
+          with 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Midwest', 'Northeast', 'South', 'West']

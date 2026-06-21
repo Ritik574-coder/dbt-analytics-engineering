@@ -42,6 +42,11 @@ SELECT
         ELSE TRIM(UPPER(state_abbr))
     END as state_abbr,
 
+    CASE
+        WHEN TRIM(state_full) IS NULL OR TRIM(state_full) = '' THEN 'Unknown'
+        ELSE TRIM(state_full)
+    END AS state,
+
     CASE 
         WHEN zip_code IS NULL THEN 0
         WHEN LEN(zip_code) != 5 THEN 0
