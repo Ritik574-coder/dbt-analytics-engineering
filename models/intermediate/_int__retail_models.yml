@@ -52,6 +52,46 @@ models:
           - not_null
           
 ####################################################################################
+####################### Model: int_customers_contact ###############################
+####################################################################################
+  - name: int_customers_contact
+    description: |
+      Cleans and standardizes customer contact information for downstream
+      analytical models. This model validates and normalizes email addresses,
+      formats phone numbers into a consistent structure, and standardizes
+      preferred communication channels to improve data quality and reporting.
+
+    columns:
+      - name: email
+        description: |
+          Standardized customer email address. Invalid or missing email
+          addresses are replaced with 'Unknown'. Common domain spelling
+          mistakes are automatically corrected.
+        tests:
+          - not_null
+
+      - name: phone
+        description: |
+          Standardized customer phone number formatted as
+          +1 (XXX) XXX-XXXX. Invalid or missing phone numbers are
+          replaced with 'Unknown'.
+        tests:
+          - not_null
+
+      - name: preferred_channel
+        description: |
+          Standardized customer preferred communication channel.
+          Source values are normalized into business-friendly categories.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  ['Mobile App', 'In Store', 'Catalog', 'Website', 'Phone Call', 'Unknown']
+
+
+
+####################################################################################
 ####################### Model: int_customer_location ###############################
 ####################################################################################
   - name: int_customer_location
