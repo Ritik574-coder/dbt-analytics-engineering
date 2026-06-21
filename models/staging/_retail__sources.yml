@@ -1,12 +1,12 @@
-# =============================================================================
-# ========================= BRONZE SOURCE DEFINITIONS =========================
-# =============================================================================
-# Purpose:
-# | Defines all raw source tables available in the Bronze layer of the  |
-# | Retail Data Warehouse. These sources represent the initial landing  |
-# | zone for data ingested from operational systems and external feeds. |
-# Maintainer: Ritik
-# =============================================================================
+####################################################################################################
+#################################### STAGING SOURCE DEFINITIONS ####################################
+####################################################################################################
+# Purpose:                                                                                         #
+#   Defines all raw source tables available in the Staging layer of the                            #
+#   Retail Data Warehouse. These sources represent the initial landing                             #
+#   zone for data ingested from operational systems and external feeds.                            #
+# Maintainer: Ritik                                                                                #
+####################################################################################################
 version: 2
 
 sources:

@@ -1,17 +1,36 @@
+####################################################################################################
+# #################################### STAGING MODEL DEFINITIONS ###################################
+####################################################################################################
+# Purpose:                                                                                         #
+#   Defines all staging models used in the Retail Data Warehouse. These                            #
+#   models provide a consistent representation of raw source data for                              #
+#   analytics by exposing source records in a standardized dbt model                               #
+#   structure. Staging models preserve the original data while                                     #
+#   documenting data quality observations and preparing datasets for                               #
+#   downstream transformation layers.                                                              #
+#                                                                                                  #
+# Maintainer: Ritik                                                                                #
+####################################################################################################
+
+
+
+####################################################################################################
+#################################### STAGING CUSTOMER INFORMATION ##################################
+####################################################################################################
+
 version: 2
 
 models:
   - name: stg_customers
     description: |
-      Raw customer master dataset containing customer demographic, contact,
-      geographic, account and loyalty information. Data profiling identified
-      multiple data quality issues including duplicate customer identifiers,
-      inconsistent categorical values, mixed date formats, malformed email
-      addresses, non-standard phone number patterns, missing values, incomplete
-      address information, invalid ZIP codes, inconsistent state and city names,
-      and varying text formats across several attributes. The dataset represents
-      source-system data in its original form and may contain operational data
-      entry errors, formatting inconsistencies and missing business attributes.
+      Staging model for the customer master dataset that exposes raw customer
+      information from the Bronze layer in a standardized dbt model structure.
+      This model preserves the original source values without applying business
+      transformations or data cleansing. Its primary purpose is to provide a
+      consistent interface for downstream models while documenting the data
+      quality issues identified during source profiling at the column level.
+      Data standardization, validation, and business rule implementation are
+      intentionally deferred to subsequent transformation layers.
 
     columns:
       - name: customer_id
@@ -26,16 +45,14 @@ models:
           - unique
           - not_null
 
-      - name: full_name
+      - name: title
         description: |
-          Customer full name derived from source customer records. This field contain
-          leading and trailing whitespace, inconsistent capitalization, formatting
-          variations, and data quality issues. In some records, the value not align
-          with the concatenated combination of title, first_name, and last_name due to
-          source system inconsistencies, data entry errors, or incomplete customer
-          information. Data validation and standardization should be applied to ensure
-          consistency across customer identity attributes.
-      
+          Customer title or honorific prefix (for example, NULL,Dr.,Mr.,Mrs.,Ms.,Prof.)
+          sourced from customer master data. This field contain leading and
+          trailing whitespace, inconsistent formatting, capitalization variations, and
+          null values. Standardization is required to ensure consistent reporting
+          and downstream data consumption.
+
       - name: first_name
         description: |
           Customer first name captured from source customer records. This field 
@@ -51,14 +68,16 @@ models:
           values, and formatting discrepancies. Some records  exhibit mismatches
           between last_name and the surname component extracted from full_name due to
           source data quality issues or inconsistent customer master records.
-      
-      - name: title
+
+      - name: full_name
         description: |
-          Customer title or honorific prefix (for example, NULL,Dr.,Mr.,Mrs.,Ms.,Prof.)
-          sourced from customer master data. This field contain leading and
-          trailing whitespace, inconsistent formatting, capitalization variations, and
-          null values. Standardization is required to ensure consistent reporting
-          and downstream data consumption.
+          Customer full name derived from source customer records. This field contain
+          leading and trailing whitespace, inconsistent capitalization, formatting
+          variations, and data quality issues. In some records, the value not align
+          with the concatenated combination of title, first_name, and last_name due to
+          source system inconsistencies, data entry errors, or incomplete customer
+          information. Data validation and standardization should be applied to ensure
+          consistency across customer identity attributes.
 
       - name: gender
         description: |
@@ -129,3 +148,373 @@ models:
       - name: state
         description: |
           Customer state name captured from source customer records. Source values 
+          contain full-state names, inconsistent capitalization, misspellings, and
+          mixed representations (abbreviations vs full names). During profiling the
+          state attribute was found to be semantically redundant relative to the
+          derived and standardized `state_abbr` and `state_full` attributes maintained
+          in the final model. Downstream workflows should prefer `state_abbr` or
+          `state_full` for reliable geographic joins and reporting; `state` is retained
+          here to preserve source-system fidelity but contain malformed or
+          inconsistent values.
+
+      - name: state_abbr
+        description: |
+          Canonical two-letter U.S. state abbreviation derived from the source `state`
+          attribute. Values were normalized to uppercase two-character abbreviations
+          (for example, 'CA', 'TX', 'NY'). Profiling identified mixed input formats and
+          misspellings; transformation logic defensively maps known variants and
+          leaves unknown values null to avoid incorrect geographic attribution.
+
+      - name: state_full
+        description: |
+          Canonical full-state name (for example, 'California', 'Texas', 'New York')
+          derived from the source `state` attribute. This column is normalized to
+          title case and used for human-readable reporting where full names are
+          preferred.
+
+      - name: zip_code
+        description: |
+          Postal code / ZIP code captured from source customer records. Profiling
+          identified non-numeric characters, incorrect lengths, and missing values.
+          The transformation includes numeric validation and minimum-length checks;
+          malformed values are flagged as invalid or nullified depending on severity.
+
+      - name: country
+        description: |
+          Customer country attribute standardized to common country names (for example,
+          'United States'). Profiling detected mixed abbreviations ('US', 'USA', 'U.S.'),
+          inconsistent casing, and missing values. The canonical value is used for
+          regional analysis and currency assumptions.
+
+      - name: region
+        description: |
+          Higher-level regional classification derived from geographic attributes
+          (for example, 'West', 'South', 'Midwest'). Region values were computed from
+          standardized state information and used to support aggregated regional
+          analysis. Records with unresolved state mappings may have null region values.
+
+      - name: customer_segment
+        description: |
+          Customer segmentation attribute (for example, 'Retail', 'Wholesale', 'Loyal').
+          Profiling revealed inconsistent category labels and legacy codes; the
+          transformation maps common variants to a small canonical set and preserves
+          unknown values for later review.
+
+      - name: loyalty_points
+        description: |
+          Numeric loyalty program balance captured from source systems. Profiling
+          identified negative and non-numeric representations; defensive numeric
+          parsing and non-negative enforcement were applied. Invalid values are
+          nullified to prevent incorrect downstream aggregations.
+
+      - name: is_active
+        description: |
+          Operational indicator reflecting whether the customer account is currently
+          active. Source values used heterogeneous boolean encodings (for example,
+          '1', '0', 'Y', 'N', 'true', 'false'). Transformation normalizes values to
+          True / False / Unknown categories to support active-customer analyses.
+
+      - name: account_created_date
+        description: |
+          ISO-standardized timestamp representing when the customer account was created.
+          Profiling identified mixed date formats and timezone ambiguity; values were
+          parsed using pattern-aware parsing logic with invalid or ambiguous dates
+          nullified rather than imputed.
+
+      - name: preferred_channel
+        description: |
+          Customer's preferred contact or marketing channel (for example, 'Email',
+          'Phone', 'SMS', 'Direct Mail'). Profiling showed semantic drift and varied
+          abbreviations; mapping rules consolidate the dominant variants into a
+          controlled vocabulary.
+
+      - name: annual_income_usd
+        description: |
+          Customer annual income expressed in USD. Profiling identified currency
+          symbol contamination, comma separators, and negative or non-numeric values.
+          Defensive currency parsing and non-negative enforcement were applied; invalid
+          representations are nullified to avoid skewing income-based segmentations.
+
+      - name: company
+        description: |
+          Customer company affiliation when provided. Values were profiled for
+          inconsistent casing, abbreviations, and truncation; transformation includes
+          whitespace cleanup and title-case normalization.
+
+####################################################################################################
+#################################### STAGING EMPLOYEES INFORMATION #################################
+####################################################################################################
+  - name: stg_employees
+    description: |
+      Raw employee master dataset containing identity, contact, organizational,
+      compensation and managerial attributes. Profiling surfaced malformed emails,
+      inconsistent phone formats, mixed date ecosystems, and invalid numeric
+      compensation values. This staging model preserves source attributes for
+      downstream normalization.
+
+    columns:
+      - name: employee_id
+        description: |
+          Unique employee identifier used for joinability with transaction and
+          store tables. Profiling validated this identifier as the natural key and
+          recommended enforcing uniqueness at downstream stages.
+        tests:
+          - unique
+          - not_null
+
+      - name: email
+        description: |
+          Employee email address. Profiling found malformed domains, duplicate '@'
+          symbols and case inconsistencies; defensive cleaning and structural
+          validation were applied in later stages.
+
+      - name: hire_date
+        description: |
+          Employee hire date normalized to ISO 8601. Profiling handled mixed date
+          formats and ambiguous regional conventions using pattern-aware parsing.
+
+####################################################################################################
+#################################### STAGING INVENTORY INFORMATION #################################
+####################################################################################################
+  - name: stg_inventory
+    description: |
+      Staging model for inventory snapshot data. Profiling identified mixed date
+      formats, malformed product identifiers, negative stock quantities and
+      inconsistent warehouse mappings. The model includes a generated surrogate
+      key to represent inventory snapshot grain.
+
+    columns:
+      - name: inventory_snapshot_sk
+        description: |
+          Generated surrogate key for inventory snapshot grain derived from
+          snapshot_date, product_id and store_id. This key is deterministic and
+          intended to provide a stable row identifier for deduplication and
+          joins.
+        tests:
+          - unique
+          - not_null
+
+      - name: snapshot_date
+        description: |
+          Inventory snapshot date normalized to ISO 8601. Profiling showed mixed
+          regional date formats; conditional parsing and defensive handling were
+          applied during standardization.
+        tests:
+          - not_null
+
+      - name: product_id
+        description: |
+          Product identifier referenced in inventory snapshots. Profiling identified
+          malformed and non-numeric product IDs; downstream validation against the
+          product dimension is recommended.
+        tests:
+          - not_null
+
+####################################################################################################
+#################################### STAGING PRODUCTS INFORMATION ##################################
+####################################################################################################
+  - name: stg_products
+    description: |
+      Raw product master dataset as ingested into the Bronze layer. Profiling
+      found malformed product identifiers, inconsistent SKU casing and formats,
+      mixed pricing representations, and variable availability encodings. This
+      staging model preserves source attributes while applying light structural
+      normalization to enable downstream product standardization.
+
+    columns:
+      - name: product_id
+        description: |
+          Unique product-level business identifier. Profiling identified malformed
+          and non-numeric product_id values; defensive integer conversion is
+          recommended. This field is expected to be the primary business key for
+          product-level joins.
+        tests:
+          - not_null
+          - unique
+
+      - name: sku
+        description: |
+          Stock-keeping unit identifier. Source SKUs may contain inconsistent casing,
+          leading/trailing whitespace, and variable lengths. Upstream profiling
+          normalized SKUs to uppercase and trimmed patterns to improve joinability.
+        tests:
+          - not_null
+
+      - name: product_name
+        description: |
+          Standardized product name after title-case normalization and whitespace
+          cleanup. Source product names exhibited inconsistent formatting and
+          partial truncation.
+
+      - name: base_price_usd
+        description: |
+          Base selling price expressed in USD. Profiling identified currency symbols,
+          thousands separators, negative values and malformed decimals; defensive
+          numeric parsing was applied downstream.
+
+      - name: cost_price_usd
+        description: |
+          Product cost price in USD. Used for margin analysis; profiling flagged
+          mismatches versus transaction-level cost references. Consumers should
+          reconcile with silver-level product pricing where available.
+
+      - name: is_available
+        description: |
+          Inventory / availability indicator sourced from product feeds. Profiling
+          consolidated numerous availability encodings into a small set of
+          canonical values (Available / Not Available / Discontinued / Unknown).
+
+####################################################################################################
+###################################### STAGING RETURNS INFORMATION #################################
+####################################################################################################
+  - name: stg_returns
+    description: |
+      Raw returns dataset containing return events and refund metadata. Profiling
+      revealed heterogeneous return channels, malformed identifiers, inconsistent
+      monetary formats, and missing product/customer references. This staging
+      model preserves the source-level return events and supports downstream
+      refund and return reconciliation.
+
+    columns:
+      - name: return_id
+        description: |
+          Unique return-event identifier. Profiling validated structural integrity
+          and recommended this field be treated as the primary key for return
+          records.
+        tests:
+          - unique
+          - not_null
+
+      - name: original_txn_id
+        description: |
+          Reference to the original transaction that the return relates to. Profiling
+          found missing or malformed references; downstream reconciliation should
+          attempt to resolve orphaned returns.
+
+      - name: refund_amount
+        description: |
+          Refund monetary amount. Source values contained currency symbols and
+          formatting inconsistencies; the pipeline defends with numeric parsing and
+          negative-value validation.
+
+####################################################################################################
+###################################### STAGING REVIEWS INFORMATION #################################
+####################################################################################################
+  - name: stg_reviews
+    description: |
+      Raw customer review dataset containing ratings, review text, and engagement
+      metrics. Profiling found inconsistent rating encodings, malformed dates,
+      mixed verification indicators and duplicate review identifiers which must
+      be handled downstream.
+
+    columns:
+      - name: review_id
+        description: |
+          Unique review identifier. Profiling detected duplicates and structural
+          anomalies; deduplication and structural validation are required downstream.
+        tests:
+          - unique
+          - not_null
+
+      - name: rating
+        description: |
+          Numeric customer rating. Profiling determined the accepted business range
+          is 1 through 5; values outside this range were nullified or flagged.
+
+
+      - name: verified_purchase
+        description: |
+          Purchase verification indicator (raw). Profiling normalized multiple
+          boolean-like encodings ('1','0','yes','no','verified') into canonical
+          values; downstream layers perform the mapping to 'Verified' / 'Not Verified' / 'Unknown'.
+
+####################################################################################################
+####################################### STAGING STORES INFORMATION #################################
+####################################################################################################
+  - name: stg_stores
+    description: |
+      Raw retail store dataset containing location, operational, and infrastructure
+      attributes. Profiling identified inconsistent state representations, malformed
+      phone numbers, invalid ZIP codes and heterogeneous boolean encodings for
+      operational flags. The staging model preserves source attributes while
+      enabling store-level standardization.
+
+    columns:
+      - name: store_id
+        description: |
+          Unique store identifier used as the primary key for store-level joins and
+          operational reporting.
+        tests:
+          - unique
+          - not_null
+
+      - name: store_name
+        description: |
+          Store display name. Profiling applied title-case normalization and minimum
+          length checks to remove malformed values.
+
+      - name: state
+        description: |
+          Raw state attribute from the store source feed. Profiling found mixed
+          full-name and abbreviated values; downstream transformations produce
+          `state`-normalized columns (`state_full`, `state_abbr`) for analytical use.
+
+      - name: zip_code
+        description: |
+          Store ZIP/postal code. Profiling identified non-numeric values and
+          invalid lengths; numeric validation and length checks are applied during
+          standardization.
+
+####################################################################################################
+#################################### STAGING TRANSCTIONS INFORMATION ###############################
+####################################################################################################
+  - name: stg_transactions
+    description: |
+      Raw sales transaction dataset preserving source-level order, customer,
+      product, store and employee attributes. Profiling exposed multi-format dates,
+      currency-formatted numeric strings, negative financial values, duplicate
+      transaction identifiers and inconsistent categorical encodings. This staging
+      model mirrors the Bronze input and serves as the ingestion point for
+      chronological and financial standardization.
+
+    columns:
+      - name: transaction_id
+        description: |
+          Raw transaction identifier originating from source systems. Profiling
+          identified duplicate `transaction_id` values in the Bronze layer; deduplication
+          occurs downstream. This field should be considered the primary identifier
+          for transaction records within this model.
+        tests:
+          - not_null
+
+      - name: order_line_number
+        description: |
+          Line number within the parent order. Profiling enforced a valid business
+          range (1-20) and flagged out-of-range values as invalid. This column is
+          used as part of the compound key with `transaction_id` at later stages.
+        tests:
+          - not_null
+
+      - name: customer_id
+        description: |
+          Customer reference captured with the transaction. Profiling detected nulls
+          and orphaned values; referential validation against the customers dimension
+          is performed in downstream layers.
+
+      - name: product_id
+        description: |
+          Product reference associated with the transaction. Profiling identified
+          malformed and null product references; downstream joins to product
+          dimensions are used for validation and cross-checking.
+
+      - name: unit_list_price
+        description: |
+          Catalog price field captured as a source string. Profiling found currency
+          symbols and thousands separators; downstream cleaning converts this to a
+          decimal USD representation.
+
+      - name: line_total_with_tax
+        description: |
+          Final line total including tax. Profiling performed cross-validation with
+          recalculated totals derived from quantity and unit pricing; discrepancies
+          were flagged for corrective logic in the Silver layer.
