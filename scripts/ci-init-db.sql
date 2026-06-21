@@ -18,3 +18,23 @@ BEGIN
     EXEC('CREATE SCHEMA dbt_ci');
 END;
 GO
+
+-- creating custom function taht help me to convert string into title case 
+CREATE FUNCTION dbo.TitleCase (@text VARCHAR(255))
+RETURNS VARCHAR(255)
+AS
+BEGIN
+    DECLARE @result VARCHAR(255) = ''
+    DECLARE @word VARCHAR(255)
+
+    ;WITH words AS (
+        SELECT value
+        FROM STRING_SPLIT(LOWER(@text), ' ')
+    )
+    SELECT @result = @result +
+        UPPER(LEFT(value,1)) +
+        SUBSTRING(value,2,LEN(value)) + ' '
+    FROM words
+
+    RETURN RTRIM(@result)
+END;
