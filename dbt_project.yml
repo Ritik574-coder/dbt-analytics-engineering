@@ -8,6 +8,7 @@ require-dbt-version: [">=1.8.0", "<2.0.0"]
 
 flags:
   dbt_sqlserver_use_native_string_types: true
+  dbt_sqlserver_use_default_schema_concat: true
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
