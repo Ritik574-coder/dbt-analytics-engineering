@@ -1,0 +1,150 @@
+version: 2
+models:
+  - name: int_employee_employment
+    description: |
+      Creates a trusted employee employment dataset by standardizing organizational 
+      attributes and resolving data quality issues across employee records. The 
+      model cleans job titles and departments, validates store geographic data, 
+      standardizes performance ratings, and normalizes employment status into 
+      consistent categories. The resulting dataset provides reliable employee 
+      information for workforce analytics, compensation reporting, and 
+      downstream dimensional modeling.
+  
+    columns:
+      - name: employee_id
+        description: |
+          Primary key for the employee within this model. Inherited from the staging layer; 
+          uniquely identifies a single internal resource record.
+        tests:
+          - unique
+          - not_null
+  
+      - name: job_title
+        description: |
+          Official job title. Values are trimmed of whitespace and missing values 
+          are defaulted to 'Unknown' to ensure consistency in organizational reporting.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Account Executive     
+                  - Customer Advisor      
+                  - Regional Manager      
+                  - Sales Associate       
+                  - Sales Consultant      
+                  - Sales Manager         
+                  - Sales Representative  
+                  - Senior Sales Associate
+                  - Store Manager Account Executive     
+                  - Customer Advisor      
+                  - Regional Manager      
+                  - Sales Associate       
+                  - Sales Consultant      
+                  - Sales Manager         
+                  - Sales Representative  
+                  - Senior Sales Associate
+                  - Store Manager 
+  
+      - name: department
+        description: |
+          The standardized corporate department classification (e.g., Sales, Operations).
+          **Transformation Logic:** Implements defensive string trimming and converts missing/null/blank 
+          values to `'Unknown'`. This column provides a bulletproof aggregation path for departmental 
+          headcount and cost center distribution analysis.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Customer Service
+                  - Management
+                  - Operations
+                  - Sales  
+
+      - name: store_id
+        description: |
+          Surrogate/Foreign key mapping the employee to their current physical retail location.
+          **Transformation Logic:** Built with strict data integrity filtering. It attempts to cast 
+          the source value into a standard `INT`. If the raw entry is non-numeric (fails parsing) OR 
+          is a negative integer (physically impossible for our enterprise sequence), the model coerces 
+          the result to `NULL`. This completely eliminates downstream foreign key join failures.
+  
+      - name: store_name
+        description: |
+          The official retail name or format banner of the store location (e.g., 'City Center Express').
+          **Transformation Logic:** Cleanses text values using whitespace elimination and structural 
+          null-handling (`'Unknown'`). Ready for direct exposition in front-end operational dashboards.
+        tests:
+          - not_null
+
+      - name: store_city
+        description: |
+          The geographic city destination of the employee's assigned store location.
+          **Transformation Logic:** Implements a strict localized length-validation test. If the input 
+          is null, empty, or shorter than 4 characters (protecting against malformed acronyms or test entries 
+          like 'X', 'AZ', 'N/A'), it is safely routed to `'Unknown'`. Otherwise, it strips extra whitespace.
+        tests:
+          - not_null
+
+      - name: annual_salary_usd
+        description: |
+          The finalized annual base compensation package for the employee, calculated in USD.
+          **Transformation Logic:** Casts the incoming raw currency format to a high-precision decimal 
+          type `DECIMAL(18,2)` to preserve cents accuracy and protect against floating-point errors. 
+          Crucially, if the salary is non-numeric, null, or falls below zero (`< 0`), it is forced to 
+          `NULL` to avoid corrupting financial aggregates, averages, and budget metrics.
+        tests:
+          - not_null
+
+      - name: commission_rate_pct
+        description: |
+          The employee's target incentive commission tier, expressed as a true percentage.
+          **Transformation Logic:** Casts values to a tight numeric decimal boundary of `DECIMAL(4,2)` 
+          to properly track fractional scales (e.g., `7.50%` or `2.25%`). Negative outliers or un-castable 
+          strings are dynamically set to `NULL` to keep payroll metrics accurate.
+        tests:
+          - not_null
+
+      - name: performance_rating
+        description: |
+          The normalized performance evaluation bucket resulting from the employee's latest review cycle.
+          **Transformation Logic:** Resolves massive legacy data fragmentation. It interprets a mixed-type 
+          input vector containing numbers (`5`, `4`, `3`, `2`), letter grades (`A`, `B`, `C`, `D`), and 
+          untrimmed text descriptions, mapping them into a clean 4-tier categorical dimension:
+          - *'Excellent'* (Maps from: 'excellent', 'a', '5')
+          - *'Good'* (Maps from: 'good', 'b', '4')
+          - *'Average'* (Maps from: 'average', 'c', '3')
+          - *'Below Average'* (Maps from: 'below average', 'd', '2')
+          - Any missing, blank, or unmapped value default securely to *'Unknown'*.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Excellent', 'Good', 'Average', 'Below Average', 'Unknown']
+  
+      - name: years_employed
+        description: |
+          The ongoing corporate tenure tracking of the individual, stated in fractional years.
+          **Transformation Logic:** Converts numbers to a decimal type `DECIMAL(4,2)`. This preserves 
+          precision for exact time-in-role benchmarks (e.g., `6.58` years instead of truncating to `6`). 
+          It protects calculations by ensuring negative ranges are set to `NULL`.
+  
+      - name: manager_id
+        description: |
+          The tracking identifier of the employee's immediate hierarchical supervisor.
+          **Transformation Logic:** Evaluates text and numeric inputs and forces numeric casting (`INT`). 
+          If a value cannot be safely evaluated as an integer, it resolves to `NULL`. This column forms 
+          the foundation for recursive reporting structures or self-joins to build an organizational chart.
+  
+      - name: is_active
+        description: |
+          A standardized corporate employment status flag.
+          **Transformation Logic:** Normalizes a highly fragmented text field by mapping 10 alternate encodings:
+          - *'True'* (Active status; mapped from: 'active', 'y', 'yes', '1', 'true')
+          - *'False'* (Separated/Inactive status; mapped from: 'terminated', 'n', 'no', '0', 'false')
+          - Unrecognized states map to a structural `NULL` to flag an invalid operational state.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['True', 'False']
