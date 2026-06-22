@@ -1,8 +1,18 @@
+####################################################################################
+# File: _int__customers_models.yml                                                 #
+#  Purpose:                                                                        #
+#    Documents all intermediate customer models used within the Retail Analytics   #
+#    dbt project. This file contains model-level and column-level documentation    #
+#    for customer-related transformations that standardize, validate, cleanse,     #
+#    and enrich customer data before it is consumed by downstream marts and more.  #
+# Maintainer:                                                                      #
+#   Ritik                                                                          #
+####################################################################################
 version: 2
 
-####################################################################################
-####################### Model: int_customer_profile ###############################
-####################################################################################
+#===================================================================================
+#========================== Model: int_customer_profile ============================
+#===================================================================================
 models:
   - name: int_customer_profile
     description: |
@@ -60,9 +70,9 @@ models:
         tests:
           - not_null
           
-####################################################################################
-####################### Model: int_customers_contact ###############################
-####################################################################################
+#===================================================================================
+#============================ Model: int_customers_contact =========================
+#===================================================================================
   - name: int_customers_contact
     description: |
       Creates a trusted customer contact dataset by improving the quality and
@@ -107,9 +117,9 @@ models:
                   ['Mobile App', 'In Store', 'Catalog', 'Website', 'Phone Call', 'Unknown']
 
 
-####################################################################################
-####################### Model: int_customer_location ###############################
-####################################################################################
+#===================================================================================
+#============================ Model: int_customer_location =========================
+#===================================================================================
   - name: int_customer_location
     description: |
       Creates a trusted customer location dataset by improving the quality and
@@ -185,9 +195,9 @@ models:
               arguments:
                 values: ['Midwest', 'Northeast', 'South', 'West']
 
-####################################################################################
-####################### Model: int_customer_segmentation ###########################
-####################################################################################
+#===================================================================================
+#============================ Model: int_customer_segmentation =====================
+#===================================================================================
   - name: int_customer_segmentation
     description: |
       Creates a trusted customer segmentation dataset by resolving inconsistencies
