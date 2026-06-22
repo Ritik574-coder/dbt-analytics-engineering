@@ -132,14 +132,14 @@ models:
       - name: address
         description: |
           Customer street address captured from source customer records. Source values
-          contain inconsistent formatting, structural variations, and missing address information.
+          contain inconsistent formatting, structural variations, and wrong address information.
           and This field contain leading and trailing whitespace.
 
       - name: city
         description: |
           Customer city name captured from source customer records. Source values
-          contain inconsistent formatting, structural variations, invalid digit
-          groupings, incomplete address information, and malformed representations.
+          contain inconsistent formatting, structural variations, incomplete address
+           information, and malformed representations.
           City values were profiled, parsed, validated, and standardized into the
           canonical US format 'Anytown'. Records failing structural validation were
           flagged as invalid to ensure consistent customer address information and
@@ -182,20 +182,20 @@ models:
       - name: country
         description: |
           Customer country attribute standardized to common country names (for example,
-          'United States'). Profiling detected mixed abbreviations ('US', 'USA', 'U.S.'),
+          ('United States'). Profiling detected mixed abbreviations ('US', 'USA', 'U.S.'),
           inconsistent casing, and missing values. The canonical value is used for
           regional analysis and currency assumptions.
 
       - name: region
         description: |
           Higher-level regional classification derived from geographic attributes
-          (for example, 'West', 'South', 'Midwest'). Region values were computed from
+          (for example, 'West', 'South', 'Midwest', etc.). Region values were computed from
           standardized state information and used to support aggregated regional
           analysis. Records with unresolved state mappings may have null region values.
 
       - name: customer_segment
         description: |
-          Customer segmentation attribute (for example, 'Retail', 'Wholesale', 'Loyal').
+          Customer segmentation attribute (for example, Bronze, Gold, Platinum, Silver).
           Profiling revealed inconsistent category labels and legacy codes; the
           transformation maps common variants to a small canonical set and preserves
           unknown values for later review.
@@ -211,7 +211,7 @@ models:
         description: |
           Operational indicator reflecting whether the customer account is currently
           active. Source values used heterogeneous boolean encodings (for example,
-          '1', '0', 'Y', 'N', 'true', 'false'). Transformation normalizes values to
+          '1', '0', 'Y', 'N', 'true', 'false', etc.). Transformation normalizes values to
           True / False / Unknown categories to support active-customer analyses.
 
       - name: account_created_date
@@ -223,8 +223,8 @@ models:
 
       - name: preferred_channel
         description: |
-          Customer's preferred contact or marketing channel (for example, 'Email',
-          'Phone', 'SMS', 'Direct Mail'). Profiling showed semantic drift and varied
+          Customer's preferred contact or marketing channel (for example, APP, Catalog,
+          in-store, Mobile App, Online, Web, etc.). Profiling showed semantic drift and varied
           abbreviations; mapping rules consolidate the dominant variants into a
           controlled vocabulary.
 
@@ -260,18 +260,172 @@ models:
           recommended enforcing uniqueness at downstream stages.
         tests:
           - unique
-          - not_null
+          - not_null   
+
+      - name: first_name   
+        description: |
+          Customer first name captured from source customer records. This field
+          contains inconsistent casing (mixed uppercase, lowercase, and title case),
+          leading and trailing whitespace, and formatting discrepancies. Profiling 
+          identified no null values, ensuring complete coverage for this attribute.
+          Standardization and whitespace trimming are required to establish a 
+          consistent format for downstream analytical reporting and personalization.
+
+      - name: last_name   
+        description: |
+          Employee last name captured from source records. This field exhibits 
+          inconsistent casing, including mixed uppercase, lowercase, and title case 
+          representations, as well as leading and trailing whitespace. Profiling 
+          confirms there are no null values in this field. Standardizing the 
+          casing and removing whitespace is required to ensure reliable 
+          employee-level identification and reporting in downstream models.
+
+      - name: full_name   
+        description: |
+          Employee full name derived from concatenated source records. This field 
+          contains inconsistent casing (mixed uppercase, lowercase, and title case) 
+          and significant leading and trailing whitespace. To ensure data 
+          consistency for reporting and directory services, this field is 
+          standardized through whitespace removal and title-case normalization. 
+          It serves as a primary display attribute, and its alignment with 
+          the individual `first_name` and `last_name` components is verified to 
+          ensure identity accuracy.
 
       - name: email
         description: |
-          Employee email address. Profiling found malformed domains, duplicate '@'
-          symbols and case inconsistencies; defensive cleaning and structural
-          validation were applied in later stages.
+          Employee email address captured from source records. Profiling identified
+          significant data quality challenges, including malformed domain structures,
+          duplicate '@' symbols, and inconsistent casing (mixed uppercase and 
+          lowercase). To ensure data integrity, defensive cleaning—including 
+          case normalization, whitespace trimming, and structural pattern validation—is 
+          applied during downstream transformations to facilitate reliable internal 
+          communications and employee identification. 
+
+      - name: phone 
+        description: |
+          Employee contact phone number. Source data contains highly inconsistent 
+          formatting, including varied separators (dots, hyphens, parentheses) and 
+          missing area codes or digit groupings. To ensure reliable contact 
+          information, all values are parsed, validated, and normalized into the 
+          canonical US format '+1 (AAA) BBB-CCCC'. Records that fail to meet this 
+          structure are flagged as invalid to maintain high data quality for 
+          downstream reporting and operational use.   
+
+      - name: job_title
+        description: |
+          Official employee job title. This field is highly standardized, 
+          featuring consistent title-case formatting with no leading or 
+          trailing whitespace. Data profiling confirms that these values are 
+          clean and ready for immediate use in organizational reporting, 
+          resource allocation, and workforce analytics without the need for 
+          further transformation.
+
+      - name: department
+        description: |
+          Organizational department classification. The values in this field are 
+          well-structured, adhering to consistent title-case formatting with 
+          no leading or trailing whitespace. The data is validated as clean, 
+          reliable, and ready for direct use in downstream workforce segmentation 
+          and departmental reporting.
+
+      - name: store_id
+        description: |
+          Unique identifier for the retail store where the employee is currently 
+          assigned. This field is consistently formatted and requires no 
+          cleansing or structural transformation. Please note that this column 
+          naturally contains duplicate values, as multiple employees are assigned 
+          to the same store location. It is suitable for use as a foreign key 
+          when joining with the stores dimension for operational or regional 
+          reporting[cite: 1].
+
+      - name: store_name
+        description: |
+          Official retail store display name. The data is well-structured and 
+          follows consistent title-case formatting, requiring no cleansing. 
+          The values incorporate store location and format identifiers (e.g., 
+          'Flagship', 'Express', 'Pop-Up', 'Outlet', 'Standard'). As a 
+          standardized dimension, this field is reliable for store-level 
+          aggregation and performance comparison across different store tiers.
+
+      - name: store_city
+        description: |
+          The city location of the retail store where the employee is assigned. 
+          The data is presented in a clean, standardized format, utilizing 
+          consistent title-case capitalization with no leading or trailing 
+          whitespace. This field is reliable for geographic filtering and 
+          regional store-performance analysis without requiring further 
+          transformation.  
 
       - name: hire_date
         description: |
-          Employee hire date normalized to ISO 8601. Profiling handled mixed date
-          formats and ambiguous regional conventions using pattern-aware parsing.
+          Employee hire date captured from source systems. The raw data exhibits 
+          significant complexity, including multiple date formats, varied 
+          regional conventions (e.g., month/day ordering), inconsistent 
+          separators, and full-text month naming variations. To ensure 
+          analytical integrity, these values have been parsed, validated, and 
+          normalized into the ISO 8601 format (YYYY-MM-DD). Ambiguous dates were 
+          resolved using pattern-based parsing and established business logic to 
+          support reliable downstream temporal analysis and workforce reporting.
+
+      - name: years_employed
+        description: |
+          Employee tenure represented as a numeric value. The current integer 
+          format fails to capture fractional periods, such as employees with 
+          partial-year experience (e.g., 6 years and 7 months). Additionally, 
+          profiling indicates that values for inactive employees are inconsistent 
+          or inaccurate. This column is being refactored to a decimal (float) 
+          format to ensure precision for tenure-based reporting, and validation 
+          logic is being implemented to correct calculations for both active and 
+          inactive personnel.
+
+      - name: annual_salary_usd
+        description: |
+          Annual base salary of the employee expressed in USD. The data is 
+          clean, consistently formatted as integers, and requires no structural 
+          transformation or cleansing. This field is validated for accuracy 
+          and is ready for immediate use in compensation analysis, budgeting, 
+          and workforce cost reporting.
+
+      - name: commission_rate_pct
+        description: |
+          Employee commission rate expressed as a percentage. The source data 
+          contains mixed numeric types (integers and decimals) due to 
+          inconsistent formatting across systems. To ensure mathematical 
+          accuracy for payroll and performance incentive calculations, this 
+          field is cast to a uniform decimal data type. No additional 
+          categorical or structural transformation is required; the focus 
+          is solely on maintaining precision for commission-based reporting.
+
+      - name: is_active
+        description: |
+          Operational status indicator reflecting whether an employee is currently 
+          active within the organization. The source data contains heterogeneous 
+          encodings, including boolean-like values ('1', 'Y', 'Yes'), negative 
+          indicators ('N', 'No'), and status descriptors ('Active', 'Terminated'). 
+          To support consistent workforce analysis, this field is normalized to a 
+          standard boolean (True/False) format. All ambiguous or non-standard 
+          representations are mapped during transformation to ensure reliable 
+          reporting on headcount and active personnel.
+
+      - name: performance_rating
+        description: |
+          Employee performance appraisal rating. Profiling identified significant
+          inconsistencies, including a mix of numeric grades (2-5), character 
+          grades (A-D), and descriptive text (e.g., 'Excellent', 'Average'). 
+          Additionally, missing values are currently represented by nulls or 
+          inconsistent labels. This field requires a standardization mapping 
+          to a uniform scale, with 'Unknown' used as the canonical value for 
+          missing or invalid records to ensure reliable performance-based 
+          segmentation and talent analytics.
+
+      - name: manager_id
+        description: |
+          Identifier of the employee's direct supervisor. The data is largely 
+          consistent; however, this field contains null values for top-level 
+          management or executive roles, as these individuals do not report to 
+          another manager within the organizational hierarchy. This column is 
+          suitable for use in recursive queries or self-joins to map the 
+          reporting structure and organizational tree.
 
 ####################################################################################################
 #################################### STAGING INVENTORY INFORMATION #################################
