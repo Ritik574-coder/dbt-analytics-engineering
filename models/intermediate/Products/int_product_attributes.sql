@@ -1,4 +1,3 @@
-
 SELECT
     CASE 
         WHEN TRY_CONVERT(INT, product_id) IS NULL THEN NULL 
