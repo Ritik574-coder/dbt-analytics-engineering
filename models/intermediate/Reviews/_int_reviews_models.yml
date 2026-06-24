@@ -1,0 +1,122 @@
+version: 2
+
+models:
+####################################################################################
+####################### Model: int_review_feedback #################################
+####################################################################################
+  - name: int_review_feedback
+    description: |
+      Creates a trusted product review metadata dataset by standardizing submission channels 
+      and cleansing text field values. The model normalizes user engagement attributes, 
+      strips carriage returns and line breaks from titles using scalar operations, and maps 
+      highly fragmented input strings into canonical omni-channel tracking vectors.
+
+    columns:
+      - name: review_id
+        description: Primary key uniquely identifying the consumer review record.
+        tests:
+          - unique
+          - not_null
+
+      - name: helpful_votes
+        description: The total volume of user votes marking the review as informative.
+
+      - name: review_channel
+        description: |
+          The unified front-end channel where the submission was published.
+          **Transformation Logic:** Groups variations and shortcuts into a Title Case business taxonomy:
+          - 'Mobile App' (From: 'app', 'mobile app', 'mobile')
+          - 'In Store' (From: 'in store', 'in-store', 'store')
+          - 'Online' (From: 'online', 'web')
+          - 'Phone Call' (From: 'phone')
+          - 'Catalog' (From: 'catalog')
+          - Missing or unmapped structures safely default to 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Mobile App', 'In Store', 'Online', 'Phone Call', 'Catalog', 'Unknown']
+
+      - name: review_title
+        description: |
+          The sanitized summary title text.
+          **Transformation Logic:** Applies whitespace trimming, Title Case conversions, and strips 
+          hidden carriage returns `CHAR(13)` and line feeds `CHAR(10)`. Empty fields default to 'Unknown'.
+        tests:
+          - not_null
+
+####################################################################################
+####################### Model: int_review_rating ###################################
+####################################################################################
+  - name: int_review_rating
+    description: |
+      Processes customer review scores by implementing defensive type-casting and explicit boundary validation. 
+      The model protects downstream aggregate scoring matrices (such as Average Rating Score) by 
+      filtering out out-of-bounds ratings and corrupted text responses.
+
+    columns:
+      - name: review_id
+        description: Primary key matching back to the master feedback dimension.
+        tests:
+          - unique
+          - not_null
+
+      - name: rating
+        description: |
+          The validated numerical assessment score assigned by the consumer.
+          **Transformation Logic:** Casts the source string to an integer. Enforces a strict business boundary: 
+          values MUST sit between 1 and 5 inclusive. Any values outside this target scale default to NULL.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+
+      - name: rating_text
+        description: The raw textual comment or contextual feedback submitted along with the rating score.
+
+####################################################################################
+####################### Model: int_review_transaction ##############################
+####################################################################################
+  - name: int_review_transaction
+    description: |
+      Normalizes and connects product review headers back to their original purchasing transactions, 
+      consumer accounts, and items. The model processes temporal values through a multi-locale validation 
+      ladder to convert multi-format text values into immutable ISO-standard dates.
+
+    columns:
+      - name: review_id
+        description: Primary key uniquely identifying the review transaction bridge.
+        tests:
+          - unique
+          - not_null
+
+      - name: txn_id
+        description: Foreign key mapping the review back to the source point-of-sale transaction record.
+        tests:
+          - not_null
+
+      - name: customer_id
+        description: Foreign key linking to the corresponding customer entity profile.
+        tests:
+          - not_null
+
+      - name: customer_name
+        description: The full identity string of the purchasing customer.
+
+      - name: product_id
+        description: Foreign key linking to the corresponding product master record.
+        tests:
+          - not_null
+
+      - name: product_name
+        description: Cleaned retail name nomenclature of the item reviewed.
+
+      - name: review_date
+        description: |
+          The standardized calendar logging date when the review was written.
+          **Transformation Logic:** Converts multi-format text entries into a safe DATE data type via an explicit CASE validation tree:
+          - Abbreviated or full textual month variations and standard ISO hyphen/slash paths are natively parsed.
+          - Date ambiguity is handled defensively: if the middle segment exceeds 12, it is treated as US format (Style 101/110).
+          If the leading segment exceeds 12, it is handled as International format (Style 103/105).
+        tests:
+          - not_null

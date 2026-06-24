@@ -1,0 +1,223 @@
+version: 2
+
+models:
+####################################################################################
+####################### Model: int_transaction_financial ###########################
+####################################################################################
+  - name: int_transaction_financial
+    description: |
+      **Layer:** Silver / Intermediate (Financial Analytics Dimension)
+      **Core Objective:** Cleanses, standardizes, and calculates itemized financial metrics at the basket line item level.
+      **Engineering Strategy:** Implements an automated data quality firewall to sanitize text-polluted currency strings 
+      and protect downstream revenue dashboards from corrupt outliers. It shields metrics from calculation errors by 
+      applying a strict business rule bounding matrix. If an upstream element breaches logical rules or contains un-castable 
+      text artifacts, the engine performs a defensive coercion to `NULL` to keep the production processing pipeline alive.
+
+    columns:
+      - name: transaction_id
+        description: Primary key uniquely identifying the internal item line ledger record.
+        tests:
+          - unique
+          - not_null
+
+      - name: quantity_ordered
+        description: |
+          The volume of physical units committed to the purchase line item.
+          **Business Logic & SQL Mechanics:** Restricts metrics to a realistic business scale using an explicit 
+          boundary conditional (`CASE WHEN quantity_ordered < 1 THEN NULL WHEN quantity_ordered > 30 THEN NULL ...`). 
+          Outliers are coerced to `NULL` to protect downstream calculations like Average Unit Retail (AUR).
+
+      - name: unit_list_price
+        description: |
+          The item sticker base MSRP.
+          **Business Logic & SQL Mechanics:** Upstream ERP formats include strings with raw currency glyphs 
+          and formatting punctuation. The SQL engine strips characters via nested string manipulations 
+          (`REPLACE(REPLACE(unit_list_price, '$', ''), ',', '')`) before executing a high-precision `TRY_CONVERT(DECIMAL(10,2), ...)` operation.
+
+      - name: discount_pct
+        description: |
+          The authorized marketing markdown percentage applied to the item line.
+          **Business Logic & SQL Mechanics:** Uses a guardrail condition to force entries between 0% and 100%. 
+          Corrupted negatives or values over 100% resolve to `NULL`, while valid decimals are truncated via `ROUND(discount_pct, 0)`.
+
+      - name: line_total_before_tax
+        description: |
+          Net transaction subtotal prior to government tax evaluation.
+          **Business Logic & SQL Mechanics:** Sanitizes values by stripping currency text formatting, casting to `DECIMAL(10,2)`, 
+          and explicitly coercing impossible negative calculations (`< 0`) to `NULL`.
+
+      - name: tax_rate_pct
+        description: |
+          The registered state or regional tax percentage category.
+          **Business Logic & SQL Mechanics:** Evaluated into a rounded `INT` structure. Standardized strictly between a 
+          0% minimum and 100% maximum scale to eliminate calculation errors.
+
+      - name: tax_amount
+        description: |
+          The total absolute tax currency value applied to the ledger row. Stripped of structural text noise (`$`, `,`) and cast to `DECIMAL(10,2)`.
+
+      - name: line_total_with_tax
+        description: |
+          The final aggregate financial customer liability for the row line item.
+          **Business Logic & SQL Mechanics:** Sanitized of currency characters and cast to a clean `DECIMAL(10,2)`. It includes a built-in business check: 
+          if the aggregate calculates below 0, it indicates data corruption and resolves to `NULL`.
+
+####################################################################################
+####################### Model: int_transaction_fulfillment #########################
+####################################################################################
+  - name: int_transaction_fulfillment
+    description: |
+      **Layer:** Silver / Intermediate (Supply Chain & Logistics Chronology)
+      **Core Objective:** Constructs an immutable timeline tracking order lifecycle milestones (Order -> Ship -> Deliver).
+      **Engineering Strategy:** Solves severe omni-channel system data quality issues. First, it implements a 
+      **Multi-Locale Temporal Parsing Ladder** to map text inputs into a unified `DATE` type. Second, it resolves supply chain 
+      logical anomalies—such as an item being marked shipped before it was bought, or an item marked delivered before it left 
+      the warehouse—by executing temporal delta matrices and data rotation logic.
+
+    columns:
+      - name: transaction_id
+        description: Primary key tracking ledger identity.
+        tests:
+          - unique
+          - not_null
+
+      - name: order_date
+        description: |
+          The foundational transaction generation calendar date.
+          **Business Logic & SQL Mechanics:** Uses pattern matching (`LIKE`) to parse multiple text layout structures. 
+          It evaluates textual names (e.g., `Jan 01, 2026`) and splits ambiguous international vs. US layouts by validating component lengths 
+          and string thresholds before mapping to standard date conversion types (`101`, `103`, `105`, `110`).
+        tests:
+          - not_null
+
+      - name: ship_date
+        description: |
+          The official date the package departed the distribution center.
+          **Business Logic & SQL Mechanics:** Employs defensive supply chain chronology rules via `DATEDIFF`:
+          - If shipping occurs *before* `order_date` (negative window) or spans *greater than 15 days* (SLA breach), 
+            the engine uses `DATEFROMPARTS` to fix reversed day/month inputs.
+          - If the value is completely unpopulated, it inserts an estimated corporate 
+            logistics SLA timeline of `DATEADD(DAY, 7, order_date)`.
+
+      - name: delivery_date
+        description: |
+          The milestone date indicating successful logistics delivery at the destination address.
+          **Business Logic & SQL Mechanics:** Processes delivery tracking anomalies via nested chronological filters:
+          - If the delivery occurs *greater than 17 days* post-shipment or registers an impossible negative window 
+          *less than -15 days prior to shipment*, it triggers an active component rearrangement to restore structural order timeline tracking.
+
+      - name: shipping_method
+        description: The distribution courier tier option chosen (e.g., Standard Ground, Next-Day Air Express).
+
+      - name: sales_channel
+        description: The touchpoint platform tracking where the purchase originated (e.g., Online Storefront, Mobile Application, Retail).
+
+      - name: payment_method
+        description: The financial tender type used to settle the transaction ledger.
+
+####################################################################################
+####################### Model: int_transaction_order ###############################
+####################################################################################
+  - name: int_transaction_order
+    description: |
+      **Layer:** Silver / Intermediate (Relational Topology & Identity Map)
+      **Core Objective:** Maps relational entity keys across transactions, baskets, customers, products, stores, and personnel.
+      **Engineering Strategy:** Acts as the high-volume identity backbone for relational star schemas. This model isolates 
+      the relational keys needed for dimensional downstream joins, while cleansing operational basket metadata by applying a strict 
+      line-item numerical boundary rule to filter system entry errors.
+
+    columns:
+      - name: transaction_id
+        description: Master technical transaction row identity code.
+        tests:
+          - unique
+          - not_null
+
+      - name: order_id
+        description: Parent business document identifier grouping individual item rows.
+        tests:
+          - not_null
+
+      - name: customer_id
+        description: Core foreign key matching the consumer account to the profile dimensions.
+        tests:
+          - not_null
+
+      - name: product_id
+        description: Master foreign key linking the row to the merchandise product catalog table.
+        tests:
+          - not_null
+
+      - name: store_id
+        description: Enterprise entity key tracking the physical store location or digital node.
+        tests:
+          - not_null
+
+      - name: employee_id
+        description: Human resources agent key tracking the checkout personnel or service rep.
+        tests:
+          - not_null
+
+      - name: order_line_number
+        description: |
+          The explicit sequential position number tracking the item row inside the parent checkout basket.
+          **Business Logic & SQL Mechanics:** Enforces strict systemic limits via boundary filtering 
+          (`CASE WHEN order_line_number < 1 THEN NULL WHEN order_line_number > 20 THEN NULL ...`). 
+          Invalid sequences or out-of-bounds inputs resolve to `NULL` to keep corrupt data from altering basket size metrics.
+
+
+####################################################################################
+####################### Model: int_transaction_status ##############################
+####################################################################################
+  - name: int_transaction_status
+    description: |
+      **Layer:** Silver / Intermediate (Categorical Status & Campaign Context Layer)
+      **Core Objective:** Standardizes alphanumeric operational states, status markers, marketing descriptors, and source system tags.
+      **Engineering Strategy:** Implements categorical smoothing to fix text fragmentation. It cleanses leading/trailing whitespace, 
+      normalizes mixed-case strings, removes hidden carriage returns, and consolidates fragmented system statuses into a uniform corporate taxonomy.
+
+    columns:
+      - name: transaction_id
+        description: Primary identification transaction key.
+        tests:
+          - unique
+          - not_null
+
+      - name: promo_id
+        description: Core tracking code link for the applied marketing promotion campaign.
+
+      - name: promo_name
+        description: |
+          Standardized label of the marketing campaign applied to the transaction.
+          **Business Logic & SQL Mechanics:** Evaluates disparate user inputs and system text markers 
+          (`TRIM(LOWER(promo_name))`) into a standardized Title Case taxonomy (e.g., 'Winter Clearance', 'Bundle Deal', 'Flash Sale'). 
+          Unmapped campaign descriptors preserve their raw text layout but are cleaned of trailing whitespace.
+        tests:
+          - not_null
+
+      - name: order_status
+        description: |
+          The normalized state tracking the operational milestone of the order lifecycle.
+          **Business Logic & SQL Mechanics:** Translates fragmented system markers using an explicit taxonomy 
+          mapping tree. It forces character uniformity to standard options: 'Pending', 'Processing', 'Shipped', 'Delivered', 'Returned', or 'Cancelled'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Returned', 'Cancelled']
+
+      - name: is_returned
+        description: |
+          A clean boolean indicator identifying if an order line was returned post-purchase.
+          **Business Logic & SQL Mechanics:** Standardizes inconsistent system inputs (`yes`, `y`, `true`, `1`) into a 
+          uniform `'True'` category. Negative inputs resolve to `'False'`, and corrupted rows map safely to `'Unknown'`.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['True', 'False', 'Unknown']
+
+      - name: data_source
+        description: |
+          A system tracking metric that records the source application of origin (e.g., 'CRM', 'Web'). 
+          This field is crucial for data lineage audits and root-cause error analysis.

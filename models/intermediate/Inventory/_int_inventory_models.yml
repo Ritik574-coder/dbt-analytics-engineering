@@ -35,6 +35,9 @@ models:
           or missing values are safely coerced to NULL to prevent downstream join failures.
         tests:
           - not_null
+          - relationships:
+              to: ref('int_product_attributes')
+              field: product_id
 
       - name: product_name
         description: |
