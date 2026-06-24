@@ -1,0 +1,148 @@
+version: 2
+
+models:
+####################################################################################
+####################### Model: int_inventory_product ###############################
+####################################################################################
+  - name: int_inventory_product
+    description: |
+      Creates a trusted product tracking dataset by standardizing snapshot logging dates, 
+      cleaning product identifiers, and resolving textual categorization anomalies across 
+      inventory snapshots. The model handles regional variations in string-based date configurations 
+      and maps product categories into a standardized, clean taxonomy. The resulting dataset 
+      provides a consistent product grain for operational inventory control and downstream reporting.
+
+    columns:
+      - name: inventory_snapshot_sk
+        description: Surrogate primary key uniquely identifying a specific product item log during a snapshot period.
+        tests:
+          - unique
+          - not_null
+
+      - name: snapshot_date
+        description: |
+          The standardized calendar logging date for inventory item records. 
+          **Transformation Logic:** Implements an explicit CASE validation ladder to parse text-based dates into an ISO-standard DATE format:
+          - Textual or abbreviated months and standard hyphen/slash paths (YYYY-MM-DD or YYYY/MM/DD) are natively converted.
+          - Multi-locale string structures are evaluated dynamically: if the middle token is greater than 12, it handles it as a US format (Style 101 or 110);
+           if the leading token is greater than 12, it is routed via International styles (Style 103 or 105).
+        tests:
+          - not_null
+
+      - name: product_id
+        description: |
+          The validated operational identifier for the product. Un-castable alphanumeric strings 
+          or missing values are safely coerced to NULL to prevent downstream join failures.
+        tests:
+          - not_null
+
+      - name: product_name
+        description: |
+          Official product nomenclature. Leading and trailing whitespaces are removed via trimming, 
+          with missing or blank values defaulting to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: sku
+        description: |
+          Stock Keeping Unit alpha-numeric tracking string. Whitespace components are trimmed 
+          and missing or empty records resolve to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: category
+        description: |
+          Standardized product line categorization. Maps varied lowercase or messy textual entries into 
+          10 business-defined Title Case operational paths: 'Electronics', 'Clothing', 'Kitchen', 'Office', 
+          'Sports', 'Health', 'Beauty', 'Footwear', 'Toys', or 'Bags'. Unmatched configurations resolve to 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Electronics', 'Clothing', 'Kitchen', 'Office', 'Sports', 'Health', 'Beauty', 'Footwear', 'Toys', 'Bags', 'Unknown']
+
+####################################################################################
+####################### Model: int_inventory_stock #################################
+####################################################################################
+  - name: int_inventory_stock
+    description: |
+      Calculates key physical unit availability metrics across inventory snapshots by enforcing 
+      numeric boundaries. The model validates system counts, filters out impossible negative numbers, 
+      and computes real-time pickable availability balances to provide an accurate picture of net warehouse stock.
+
+    columns:
+      - name: inventory_snapshot_sk
+        description: Surrogate primary key identifying the unique item snapshot sequence.
+        tests:
+          - unique
+          - not_null
+
+      - name: stock_on_hand
+        description: |
+          The total recorded physical item count present inside the warehouse facility. 
+          Alphanumeric parsing anomalies or negative value errors are explicitly set to NULL.
+
+      - name: stock_reserved
+        description: |
+          The count of units allocated or committed to active customer orders. 
+          Negative entries or invalid numeric data strings are coerced to NULL.
+
+      - name: stock_available
+        description: |
+          The net quantity of items currently pickable, sellable, and uncommitted. 
+          **Transformation Logic:** Dynamically calculated inline as `stock_on_hand` minus `stock_reserved`.
+
+      - name: reorder_level
+        description: |
+          The replenishment baseline safety milestone count. Values failing integer conversion 
+          or registering below zero are converted to NULL.
+
+####################################################################################
+####################### Model: int_inventory_valuation #############################
+####################################################################################
+  - name: int_inventory_valuation
+    description: |
+      Enriches snapshot files with high-precision asset valuation and pricing metrics. The model 
+      strips formatting noise (such as currency symbols and comma grouping separators) from text fields, 
+      standardizes locations, and calculates extended inventory holding values for financial and margin analysis.
+
+    columns:
+      - name: inventory_snapshot_sk
+        description: Surrogate primary key identifying the evaluated warehouse ledger item.
+        tests:
+          - unique
+          - not_null
+
+      - name: unit_cost
+        description: |
+          The acquisition cost per unit cast to a decimal(10,2) format for exact precision. 
+          **Transformation Logic:** Programmatically checks for and strips leading '$' markers from text strings before conversion.
+
+      - name: unit_price
+        description: |
+          The Manufacturer's Suggested Retail Price (MSRP) for the item, cast to a decimal(10,2) format. 
+          **Transformation Logic:** Cleanses text strings by stripping out both currency '$' characters
+          and embedded thousands comma groupings (',') to allow safe mathematical execution.
+
+      - name: stock_on_hand
+        description: |
+          The physical count of units present in the warehouse. Non-numeric inputs or negative counts 
+          resolve to NULL to protect downstream multiplication.
+
+      - name: inventory_value
+        description: |
+          The extended total dollar value of the stock on hand. 
+          **Transformation Logic:** Evaluated dynamically by multiplying the cleaned `unit_price`
+           by the validated `stock_on_hand`.
+
+      - name: warehouse_location
+        description: |
+          The tracking designation code for the storage facility. Values are standardized to UPPERCASE 
+          with missing or blank fields defaulting to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: store_id
+        description: |
+          The associated brick-and-mortar retail location identifier. Converted to an integer data type, 
+          with missing or blank spaces coerced to NULL.
