@@ -1,10 +1,68 @@
 
 
+version: 2
+models:
+
+#=========================================================================================
+#================================ Models : int_employee_profile ==========================
+#=========================================================================================
+  - name: int_employee_profile
+    description: |
+      **Model Purpose:**
+      Creates a trusted employee profile dataset by isolating, tokenizing, and standardizing 
+      core identity and onboarding configurations from raw employee records. The model resolves 
+      critical data quality issues by programmatically decomposing unified full name blocks into 
+      discrete name components (`first_name`, `last_name`) and parsing highly fragmented string 
+      inputs into deterministic, ISO-compliant calendar dates. The resulting dataset establishes 
+      a high-integrity foundation for workforce demographics, accurate identity tracking, 
+      headcount timelines, and downstream dimensional modeling.
+  
+    columns:
+      - name: employee_id
+        description: |
+          Primary key of the employee profile dimension. Inherited from the staging infrastructure 
+          and validated for row uniqueness.
+        tests:
+          - unique
+          - not_null
+  
+      - name: first_name
+        description: |
+          The isolated given name of the employee. 
+          **Transformation Logic:** Calculated using a structural string metric. It counts the whitespace 
+          delimiters within the raw name block. If exactly one space is present (representing a standard 
+          two-part name structure), it translates spaces to dots and leverages the system `PARSENAME` object 
+          metadata parser to pull the second segment from the right.
+        tests:
+          - not_null
+            
+      - name: last_name
+        description: |
+          The isolated family name or surname of the employee.
+          **Transformation Logic:** Programmatically extracts the absolute right-most token from the 
+          `full_name` field by splitting on whitespace components. This field is guaranteed to populate 
+          regardless of whether the employee has a middle initial or complex prefix.
+        tests:
+          - not_null
+  
+      - name: hire_date
+        description: |
+          The canonical calendar date marking the employee's formal onboarding into the enterprise network. 
+          **Transformation Logic:** Converts multiple incoming text-based date patterns into an immutable 
+          ISO-standard `DATE` (YYYY-MM-DD) format using an explicit `CASE` branching ladder:
+          - Textual month names (e.g., 'January 15, 2021') and standard hyphen/slash formats 
+            (e.g., 'YYYY-MM-DD') are parsed via native conversion.
+          - Regional date ambiguity is resolved dynamically: if the leading numerical segment exceeds 12,
+            it is cast via International conventions (Styles 103/105); if the middle segment exceeds 12,
+            it is treated as a US convention (Styles 101/110).
+          - Any unmapped or non-standard variations safely fallback onto a standard casting function
+            to maintain temporal tracking integrity.
+        tests:
+          - not_null
+   
 #=========================================================================================
 #============================= Models : int_employee_employment ==========================
 #=========================================================================================
-version: 2
-models:
   - name: int_employee_employment
     description: |
       Creates a trusted employee employment dataset by standardizing organizational 
@@ -41,19 +99,11 @@ models:
                   - Sales Manager         
                   - Sales Representative  
                   - Senior Sales Associate
-                  - Store Manager Account Executive     
-                  - Customer Advisor      
-                  - Regional Manager      
-                  - Sales Associate       
-                  - Sales Consultant      
-                  - Sales Manager         
-                  - Sales Representative  
-                  - Senior Sales Associate
-                  - Store Manager 
+                  - Store Manager  
   
       - name: department
         description: |
-          The standardized corporate department classification (e.g., Sales, Operations).
+          The standardized corporate department classification (e.g., Sales, Operations etc..).
           **Transformation Logic:** Implements defensive string trimming and converts missing/null/blank 
           values to `'Unknown'`. This column provides a bulletproof aggregation path for departmental 
           headcount and cost center distribution analysis.
@@ -66,6 +116,7 @@ models:
                   - Management
                   - Operations
                   - Sales  
+                  - Unknown
 
       - name: store_id
         description: |
@@ -116,12 +167,8 @@ models:
           The normalized performance evaluation bucket resulting from the employee's latest review cycle.
           **Transformation Logic:** Resolves massive legacy data fragmentation. It interprets a mixed-type 
           input vector containing numbers (`5`, `4`, `3`, `2`), letter grades (`A`, `B`, `C`, `D`), and 
-          untrimmed text descriptions, mapping them into a clean 4-tier categorical dimension:
-          - *'Excellent'* (Maps from: 'excellent', 'a', '5')
-          - *'Good'* (Maps from: 'good', 'b', '4')
-          - *'Average'* (Maps from: 'average', 'c', '3')
-          - *'Below Average'* (Maps from: 'below average', 'd', '2')
-          - Any missing, blank, or unmapped value default securely to *'Unknown'*.
+          untrimmed text descriptions, mapping them into a clean 4-tier categorical dimension
+          (example :'Excellent', 'Good', 'Average', 'Below Average', 'Unknown' )
         tests:
           - accepted_values:
               arguments:
@@ -153,3 +200,45 @@ models:
           - accepted_values:
               arguments:
                 values: ['True', 'False']
+
+#=========================================================================================
+#================================ Models : int_employee_contact ==========================
+#=========================================================================================
+  - name: int_employee_contact
+    description: |
+      Creates a trusted employee contact dataset by improving the quality and 
+      consistency of employee communication attributes. The model validates and 
+      repairs email addresses and standardizes phone numbers into a common format. 
+      The resulting dataset provides reliable contact information for internal 
+      communications, identity matching, corporate directory services, and downstream 
+      analytical models.
+  
+    columns:
+      - name: employee_id
+        description: |
+          Primary key of the employee contact dimension. Inherited from the 
+          staging layer and used to uniquely identify individual resource records.
+        tests:
+          - unique
+          - not_null
+  
+      - name: email
+        description: |
+          The standardized corporate or personal email address of the employee.
+          **Transformation Logic:** Implements programmatic cleansing to resolve formatting anomalies:
+          - Null or empty strings, as well as entries completely missing the '@' delimiter, are forced to 'Unknown'.
+          - Structural duplication issues (e.g., multiple '@' signs) are resolved by isolating the first instance and stripping duplicate characters from the domain string.
+          - All valid entries are trimmed and cast to lowercase to maintain strict grouping consistency.
+        tests:
+          - not_null
+  
+      - name: phone
+        description: |
+          The employee's phone number standardized into the corporate '+1 (XXX) XXX-XXXX' format.
+          **Transformation Logic:** Evaluates incoming string patterns against five distinct structural signatures to re-align components uniformly:
+          - Formats starting with a plus sign and an international code (e.g., '+1XXXXXXXXXX') are parsed and injected with standard spaces, brackets, and hyphens.
+          - Dotted strings ('XXX.XXX.XXXX') or continuous digit sequences ('XXXXXXXXXX') are sliced into area code, prefix, and line number groups before concatenation.
+          - Hyphen-separated values ('XXX-XXX-XXXX') are combined directly by preserving the tail positions.
+          - Already formatted parenthesized elements ('(XXX) XXX-XXXX') are prepended with the standard international country indicator '+1 '.
+        tests:
+          - not_null
