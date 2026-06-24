@@ -1,0 +1,219 @@
+version: 2
+
+models:
+####################################################################################
+####################### Model: int_product_attributes ##############################
+####################################################################################
+  - name: int_product_attributes
+    description: |
+      Creates a trusted product master reference dataset by standardizing essential 
+      textual identifiers, categorical taxonomy paths, and historical launch timelines. 
+      The model enforces string trimming, title-case casing normalization using custom scalar functions, 
+      and executes a strict multi-locale validation sequence to safely cast inconsistent text strings 
+      into standard ISO dates.
+
+    columns:
+      - name: product_id
+        description: |
+          Primary key identifying the product. Validated via integer casting; un-castable or alphanumeric 
+          anomalies are safely coerced to NULL to protect downstream relationships.
+        tests:
+          - unique
+          - not_null
+
+      - name: sku
+        description: |
+          Stock Keeping Unit alpha-numeric tracking code. Enforces a strict 13-character length verification. 
+          Blanks, nulls, or records failing the structural constraint default directly to 'Unknown'; valid 
+          SKUs are trimmed and normalized to UPPERCASE.
+        tests:
+          - unique
+          - not_null
+
+      - name: product_name
+        description: |
+          Official product name banner. Standardized using whitespace trimming and transformed into 
+          Title Case. Missing or blank records fallback to 'Unknown'.
+        tests:
+          - unique
+          - not_null
+
+      - name: brand
+        description: |
+          The corporate brand label assigned to the product. Standardized into Title Case; blank or missing 
+          inputs default to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: category
+        description: |
+          Top-level retail catalog classification path. Standardized into Title Case; empty strings or 
+          unpopulated values resolve to 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Bags
+                  - Beauty
+                  - Clothing
+                  - Electronics
+                  - Footwear
+                  - Health
+                  - Kitchen
+                  - Office
+                  - Sports
+                  - Toys
+
+      - name: sub_category
+        description: |
+          Granular sub-classification path. Standardized into Title Case; empty strings or unpopulated 
+          values resolve to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: department
+        description: |
+          Corporate operational department responsible for the product line. Standardized into Title Case; 
+          missing source records default to 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Apparel & Sports
+                  - Books & Office
+                  - Fitness & Outdoors
+                  - Health & Beauty
+                  - Home & Garden
+                  - Technology
+                  - Toys & Games
+
+      - name: launched_date
+        description: |
+          The formalized market introduction date for the product asset. 
+          **Transformation Logic:** Implements an explicit CASE parsing tree to convert multi-format text entries into a safe DATE data type:
+          - Full text or abbreviated text month variants and standard hyphen/slash paths are natively cast.
+          - Multi-locale ambiguity is handled defensively: if the middle token exceeds 12, it is treated as US format (Style 101/110).
+          If the leading segment exceeds 12, it is handled as an International format (Style 103/105).
+        tests:
+          - not_null
+
+####################################################################################
+####################### Model: int_product_inventory ###############################
+####################################################################################
+  - name: int_product_inventory
+    description: |
+      Calculates item status metrics and availability limits for products. The model collapses 
+      fragmented multi-character text fields into specific operational taxonomy categories 
+      and enforces numeric boundary checks on quantities to prevent legacy system negative value noise.
+
+    columns:
+      - name: product_id
+        description: Unique product tracking identifier.
+        tests:
+          - unique
+          - not_null
+
+      - name: is_available
+        description: |
+          Standardized product fulfillment availability status. 
+          **Transformation Logic:** Evaluates an expansive multi-token list of text flags into three primary buckets:
+          - 'Available' (Mapped from: 'a', 'y', 'ye', '1', 't', 'tr', 'in', 'i')
+          - 'Not Available' (Mapped from: 'n', 'no', 'o', 'ou')
+          - 'Discontinued' (Mapped from: 'd', 'di')
+          - Any unmapped, missing, or corrupt variants fallback safely to 'Unknown'.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Available', 'Not Available', 'Discontinued', 'Unknown']
+
+      - name: stock_quantity
+        description: |
+          Total physical stock balances recorded across inventory hubs. Coerced to NULL if the source value 
+          is missing, non-numeric, or registers as an impossible negative balance (< 0).
+
+      - name: reorder_level
+        description: |
+          The baseline automated inventory safety trigger limit. Coerced to NULL if the field is non-numeric, 
+          missing, or registers as an impossible negative threshold (< 0).
+
+####################################################################################
+####################### Model: int_product_pricing #################################
+####################################################################################
+  - name: int_product_pricing
+    description: |
+      Extracts, cleanses, and maps high-precision margin attributes for retail products. The model programmatically 
+      scrubs text strings to remove currency markers and grouping commas, casts metrics to financial data types, 
+      and validates maximum threshold boundaries.
+
+    columns:
+      - name: product_id
+        description: Unique product tracking identifier.
+        tests:
+          - unique
+          - not_null
+
+      - name: base_price_usd
+        description: |
+          The standardized retail sticker price (MSRP) for the product. 
+          **Transformation Logic:** Cleanses complex text currency strings by stripping embedded commas (',') and 
+          dollar symbols ('$') before casting to high-precision DECIMAL(10,2). Values below zero default to NULL.
+
+      - name: cost_price_usd
+        description: |
+          The vendor procurement cost price for the product item. 
+          **Transformation Logic:** Cleanses text strings by stripping commas and dollar markers before casting to 
+          high-precision DECIMAL(10,2). Negative outliers resolve to NULL to avoid skewing gross profit statistics.
+
+      - name: gross_margin_pct
+        description: |
+          The recorded margin percentage tier. Cast to DECIMAL(5,1) for accuracy. Implements a critical data 
+          quality safety filter: if the value exceeds 100% (a logical pricing error) or falls below 0%, it is 
+          automatically coerced to NULL.
+
+####################################################################################
+####################### Model: int_product_supplier ################################
+####################################################################################
+  - name: int_product_supplier
+    description: |
+      Enriches corporate items with standardized logistical profiles, supplier names, and product reviews. 
+      The model handles geographic inconsistencies, applies specific operational upper/lower ceilings on scale rankings, 
+      and structures logistical integers.
+
+    columns:
+      - name: product_id
+        description: Unique product tracking identifier.
+        tests:
+          - unique
+          - not_null
+
+      - name: supplier_name
+        description: |
+          The primary manufacturer or vendor account name. Trimmed of whitespace and converted to Title Case, 
+          defaulting missing or blank values to 'Unknown'.
+
+      - name: supplier_country
+        description: |
+          The localized geographic country node for the supplier. Converts country code values (e.g., 'USA' to 'United States') 
+          and applies Title Case mapping. Empty or unpopulated items default to 'Unknown'.
+
+      - name: weight_kg
+        description: |
+          The recorded physical mass of the product. Cast to a numeric DECIMAL(5,2) data type. Any negative dimensions 
+          or non-numeric anomalies are coerced to NULL.
+
+      - name: warranty_years
+        description: |
+          The customer coverage warranty timeline expressed in years. Cast to an integer. Employs defensive bounding logic: 
+          if the timeframe is negative (< 0) or exceeds an impossible threshold (> 20 years), it is coerced to NULL.
+
+      - name: rating_avg
+        description: |
+          The average aggregated product rating score. Cast to DECIMAL(3,1). Enforces strict compliance with an 
+          operational five-star scale rule; any evaluation metrics registering outside the 0.0 to 5.0 boundary default to NULL.
+
+      - name: review_count
+        description: |
+          The complete volume of submission logs submitted by consumers. Cast to an integer; negative value anomalies 
+          or invalid fields are safely normalized to NULL.
