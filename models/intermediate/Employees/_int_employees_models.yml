@@ -1,5 +1,3 @@
-
-
 version: 2
 models:
 
@@ -125,6 +123,10 @@ models:
           the source value into a standard `INT`. If the raw entry is non-numeric (fails parsing) OR 
           is a negative integer (physically impossible for our enterprise sequence), the model coerces 
           the result to `NULL`. This completely eliminates downstream foreign key join failures.
+        tests:
+          - relationships:
+              to: ref('int_store_profile')
+              field: store_id
   
       - name: store_name
         description: |

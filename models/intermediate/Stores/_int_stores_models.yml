@@ -1,0 +1,203 @@
+version: 2
+
+models:
+####################################################################################
+####################### Model: int_store_location ##################################
+####################################################################################
+  - name: int_store_location
+    description: |
+      Creates a trusted store location dataset by cleaning, normalizing, and standardizing 
+      geographic elements and communication paths. The model standardizes state abbreviations, 
+      corrects country variations into standardized naming, converts structural tracking 
+      attributes into Title Case format, and enforces numeric structures on postal codes and phone components.
+
+    columns:
+      - name: store_id
+        description: Primary key identifying the individual physical retail store.
+        tests:
+          - unique
+          - not_null
+
+      - name: address
+        description: |
+          Standardized street address of the retail facility.
+          **Transformation Logic:** Implements string trimming and converts to Title Case. If the string 
+          length is shorter than 5 characters or completely missing, it falls back to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: city
+        description: |
+          Standardized city location text.
+          **Transformation Logic:** Trims whitespace and applies Title Case formatting. If the string 
+          length is under 3 characters or unpopulated, it defaults to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: state
+        description: |
+          Standardized two-character state abbreviation.
+          **Transformation Logic:** Directly translates common full state strings (e.g., 'California', 'Texas') 
+          into their uppercase 2-letter postal shortcuts (e.g., 'CA', 'TX'). If the length is less than 2, 
+          or if it contains a blank or null value, it defaults to 'Unknown'.
+
+      - name: state_full
+        description: |
+          The canonical full state name.
+          **Transformation Logic:** Applies whitespace trimming and converts strings to Title Case. 
+          If the string is shorter than 4 characters or entirely blank, it maps to 'Unknown'.
+
+      - name: zip_code
+        description: |
+          The validated 5-digit store postal code.
+          **Transformation Logic:** Casts the incoming alphanumeric string into an integer. If the string fails 
+          numeric validation or does not map precisely to a clean integer format, it resolves as NULL.
+
+      - name: country
+        description: |
+          Standardized sovereign nation taxonomy labeling.
+          **Transformation Logic:** Standardizes multiple shorthand or punctuation variations 
+          ('us', 'usa', 'u.s.a', 'u.s', 'united states') into 'United States'. For all other countries, 
+          it applies Title Case. Shorter variants (under 2 characters) or blanks resolve to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: region
+        description: |
+          Top-level corporate geographic sales region assignment. Standardized using whitespace trimming and 
+          Title Case formatting. Inputs under 2 characters or unpopulated strings default to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: district
+        description: |
+          Granular corporate organizational operational district line. Standardized using whitespace trimming and 
+          Title Case formatting. Inputs under 2 characters or unpopulated strings default to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: phone
+        description: |
+          The employee or facility contact phone number standardized to include a country index prefix.
+          **Transformation Logic:** Evaluates multiple structural telephone string configurations to inject standardized 
+          parentheses, hyphens, and whitespace spacing:
+          - Parenthesized values ('(XXX) XXX-XXXX') are prepended with '+1 '.
+          - International strings starting with '+' ('+XXXXXXXXXXX') are split into area and local sequences.
+          - Hyphenated components ('XXX-XXX-XXXX') are prepended with '+1 ' and structured.
+          - Missing entries, spaces, or corrupt non-matching inputs default to 'Unknown'.
+        tests:
+          - not_null
+
+####################################################################################
+####################### Model: int_store_operations ################################
+####################################################################################
+  - name: int_store_operations
+    description: |
+      Calculates operational capacity profiles, capacity thresholds, and service amenities 
+      across corporate properties. The model isolates financial variables, validates physical bounding numbers 
+      to eliminate system tracking anomalies, and cleanses hidden text line breaks from boolean indicators.
+
+    columns:
+      - name: store_id
+        description: Primary key identifying the operating facility.
+        tests:
+          - unique
+          - not_null
+
+      - name: sq_footage
+        description: |
+          The total calculated physical interior surface area of the building. Converted to an integer. 
+          Values failing translation or showing negative bounds (< 0) are coerced to NULL.
+
+      - name: num_employees
+        description: |
+          Total operational payroll headcount recorded at the facility. Converted to an integer. 
+          Values showing negative bounds (< 0) are coerced to NULL.
+
+      - name: annual_rent_usd
+        description: |
+          The annualized lease financial liability in USD. Converted to an integer. 
+          Values tracking below 1 or completely missing default to NULL.
+
+      - name: is_active
+        description: |
+          Standardized boolean operational trading milestone flag.
+          **Transformation Logic:** Standardizes multiple system-generated tokens ('true', 'yes', 'y', '1', 'active') 
+          into 'True', and negative states ('false', 'no', 'n', '0', 'not active') into 'False'. Outliers map to 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['True', 'False', 'Unknown']
+
+      - name: has_parking
+        description: |
+          Standardized binary vehicle amenity flag.
+          **Transformation Logic:** Maps incoming affirmative variations ('true', 'yes', 'y', '1') to 'True' and 
+          negative sequences to 'False'. Any unmatched or missing items fallback to 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['True', 'False', 'Unknown']
+
+      - name: has_cafe
+        description: |
+          Standardized facility restaurant amenity flag.
+          **Transformation Logic:** Programmatically strips hidden formatting noise including carriage returns `CHAR(13)` 
+          and line feeds `CHAR(10)` from lowercase text blocks. Maps affirmative states to 'True', negative structures 
+          to 'False', and corrupt lines to 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['True', 'False', 'Unknown']
+
+####################################################################################
+####################### Model: int_store_profile ###################################
+####################################################################################
+  - name: int_store_profile
+    description: |
+      Extracts and structures core retail facility identities, assignments, and onboarding horizons. 
+      The model handles heterogeneous date configuration layouts via a multi-locale conversion ladder, 
+      normalizes structural typography strings into clean Title Case, and enforces minimum character checks.
+
+    columns:
+      - name: store_id
+        description: Primary key uniquely identifying the physical facility profile.
+        tests:
+          - unique
+          - not_null
+
+      - name: manager_name
+        description: |
+          The full identity string of the active general store manager.
+          **Transformation Logic:** Trims whitespace and applies Title Case formatting. Missing rows or 
+          strings shorter than 2 characters default to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: store_name
+        description: |
+          The public banner or trading name of the retail outlet.
+          **Transformation Logic:** Trims whitespace and applies Title Case formatting. Missing records or 
+          strings shorter than 3 characters default to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: store_type
+        description: |
+          The operational classification of the outlet format (e.g., Flagship, Express).
+          **Transformation Logic:** Trims whitespace and applies Title Case formatting. Missing inputs or 
+          strings shorter than 3 characters default to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: opened_date
+        description: |
+          The canonical calendar date marking the official grand opening of the facility.
+          **Transformation Logic:** Implements an explicit CASE branching structure to parse textual or regional 
+          string parameters into a clean, ISO-standard DATE data type:
+          - Textual month lines and standard hyphen/slash paths are natively parsed via native conversions.
+          - Multi-locale ambiguity is handled defensively: if the middle token exceeds 12, it is treated as US format (Style 101/110). If the leading segment exceeds 12, it is handled as International format (Style 103/105).
+          - Unmapped variations fallback onto a standard casting function to maintain temporal tracking integrity.

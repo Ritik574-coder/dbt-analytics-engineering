@@ -1,0 +1,150 @@
+version: 2
+
+models:
+####################################################################################
+####################### Model: int_return_processing ###############################
+####################################################################################
+  - name: int_return_processing
+    description: |
+      Creates a trusted return processing operational dataset by standardizing categorical metrics, 
+      normalizing return fulfillment channels, and cleansing workflow status identifiers. The model 
+      applies Title Case to reason fields and handles alphanumeric casting exceptions for logistics personnel.
+
+    columns:
+      - name: return_id
+        description: Primary key uniquely identifying the individual return log.
+        tests:
+          - unique
+          - not_null
+
+      - name: return_reason
+        description: |
+          The documented customer reason for returning the product.
+          **Transformation Logic:** Standardized using whitespace trimming and converted to Title Case. Missing or empty string inputs fallback to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: return_channel
+        description: |
+          The operational channel through which the return was initiated.
+          **Transformation Logic:** Groups highly fragmented text inputs into specific corporate categories:
+          - 'Mobile App' (Mapped from: 'app', 'mobile app', 'mobile')
+          - 'In Store' (Mapped from: 'in store', 'in-store', 'store')
+          - 'Online' (Mapped from: 'online', 'web')
+          - 'Phone Call' (Mapped from: 'phone')
+          - 'Catalog' (Mapped from: 'catalog')
+          - Unmapped formats default to 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Mobile App', 'In Store', 'Online', 'Phone Call', 'Catalog', 'Unknown']
+
+      - name: restocked
+        description: |
+          Operational flag indicating whether the item was returned to store inventory shelf space.
+          **Transformation Logic:** Standardized from multi-type strings ('yes', 'y', '1' to 'Yes' / 'no', 'n', '0' to 'No'). Outliers resolve to 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Yes', 'No', 'Unknown']
+
+      - name: return_status
+        description: |
+          Current state of the return processing lifecycle. Standardized to Title Case; missing source entries default to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: handled_by_emp_id
+        description: |
+          The unique identifier of the store employee processing the return ticket. Converted to an integer data type, with missing or invalid fields coerced to NULL.
+
+####################################################################################
+####################### Model: int_return_refund ###################################
+####################################################################################
+  - name: int_return_refund
+    description: |
+      Extracts and sanitizes financial reimbursement attributes for returned orders. The model programmatically 
+      scrubs text currency strings to isolate decimals and normalizes payment methods to support precise gross margin 
+      reconciliation tracking.
+
+    columns:
+      - name: return_id
+        description: Unique primary key mapping to the corresponding return entry.
+        tests:
+          - unique
+          - not_null
+
+      - name: refund_amount
+        description: |
+          The total dollar value reimbursed back to the customer, cast to decimal(10,2) precision.
+          **Transformation Logic:** Strips formatting artifacts including currency symbols ('$') and thousands separators (',') before typecasting. Negative entries or un-castable formats default to NULL.
+
+      - name: refund_method
+        description: |
+          The transaction payment type used for the reimbursement (e.g., Credit Card, Cash). Standardized using Title Case, defaulting blank rows to 'Unknown'.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Cash
+                  - Original Payment
+                  - Store Credit
+
+####################################################################################
+####################### Model: int_return_transaction ##############################
+####################################################################################
+  - name: int_return_transaction
+    description: |
+      Normalizes and links return vouchers back to their core original transaction entities. The model enforces 
+      prefix patterns for tracking codes, tokenizes associated consumer profile fields into Title Case, and 
+      executes a multi-locale temporal handling sequence to cast multi-format text values into clean ISO dates.
+
+    columns:
+      - name: return_id
+        description: Cleaned primary identification key. Values below 1 or non-numeric elements resolve to NULL.
+        tests:
+          - unique
+          - not_null
+
+      - name: original_txn_id
+        description: |
+          The alphanumeric string of the original purchasing transaction header.
+          **Transformation Logic:** Enforces strict systemic syntax verification: must contain the 
+          corporate prefix 'TXN-' and maintain a minimum character length of 10. Failing rows are coerced to NULL.
+
+      - name: original_order_id
+        description: The integer identifier tracking the master order entry. Values below 1 or invalid formats resolve to NULL.
+
+      - name: customer_id
+        description: Unique identifier linking the transaction to a customer account profile. Invalid formats resolve to NULL.
+
+      - name: customer_name
+        description: Full name of the purchasing client. Standardized into Title Case; blank inputs fallback to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: product_id
+        description: Unique identifier tracking the specific physical item returned. Invalid formats resolve to NULL.
+
+      - name: product_name
+        description: Official description name of the item. Standardized into Title Case; blanks default to 'Unknown'.
+        tests:
+          - not_null
+
+      - name: quantity_returned
+        description: |
+          Total count of physical units returned. Enforces business rule threshold :
+          values below 1 or non-numeric elements are coerced to NULL.
+
+      - name: return_date
+        description: |
+          The calendar date the return was officially recorded by the system.
+          **Transformation Logic:** Evaluates multiple text structures into an ISO-standard DATE format via an explicit CASE validation tree:
+          - Textual month lines and standard hyphen/slash paths are natively parsed.
+          - Multi-locale ambiguity is handled defensively: if the middle token exceeds 12, it is treated as US format (Style 101);
+           if the leading segment exceeds 12, it is handled as International format (Style 103).
+        tests:
+          - not_null
