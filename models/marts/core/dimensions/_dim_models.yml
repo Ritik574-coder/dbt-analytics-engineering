@@ -1,0 +1,70 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: Customer dimension with profile, contact, location, and segmentation attributes.
+    columns:
+      - name: customer_id
+        description: Unique customer identifier.
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_employees
+    description: Employee dimension with profile, contact, employment, store, and compensation attributes.
+    columns:
+      - name: employee_id
+        description: Unique employee identifier.
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_products
+    description: Product dimension with catalog, pricing, inventory status, supplier, and review summary attributes.
+    columns:
+      - name: product_id
+        description: Unique product identifier.
+        tests:
+          - unique
+          - not_null
+
+      - name: sku
+        description: Standardized product SKU.
+
+      - name: category
+        description: Standardized product category.
+
+  - name: dim_stores
+    description: Store dimension with profile, location, operations, and facility attributes.
+    columns:
+      - name: store_id
+        description: Unique store identifier.
+        tests:
+          - unique
+          - not_null
+
+      - name: region
+        description: Store operating region.
+
+      - name: is_active
+        description: Standardized active-store indicator.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['True', 'False', 'Unknown']
+
+  - name: dim_date
+    description: Calendar dimension built from dates observed across sales, returns, reviews, and inventory snapshots.
+    columns:
+      - name: date_day
+        description: Calendar date.
+        tests:
+          - unique
+          - not_null
+
+      - name: day_type
+        description: Weekday or weekend indicator.
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Weekday', 'Weekend']
