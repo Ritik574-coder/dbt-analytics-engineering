@@ -21,4 +21,4 @@ LEFT JOIN {{ ref('int_employee_contact') }} as c
     ON p.employee_id = c.employee_id
 
 LEFT JOIN {{ ref('int_employee_employment') }} as e  
-    ON p.employee_id = e.employee_id ; 
+    ON p.employee_id = e.employee_id ;  

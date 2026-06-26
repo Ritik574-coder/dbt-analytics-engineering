@@ -26,5 +26,4 @@ LEFT JOIN {{ ref('int_product_pricing') }} AS p
 LEFT JOIN {{ ref('int_product_inventory') }} AS i
     ON a.product_id = i.product_id
 LEFT JOIN {{ ref('int_product_supplier') }} AS s
-    ON a.product_id = s.product_id
-WHERE a.product_id IS NOT NULL;
+    ON a.product_id = s.product_id ;
