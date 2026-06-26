@@ -28,4 +28,4 @@ LEFT JOIN {{ ref('int_customer_location') }} as l
     ON p.customer_id = l.customer_id
 
 LEFT JOIN {{ ref('int_customer_segmentation') }} as s  
-    ON s.customer_id = p.customer_id ;
+    ON s.customer_id = p.customer_id ; 
