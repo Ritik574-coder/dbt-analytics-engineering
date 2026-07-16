@@ -1,9 +1,11 @@
-{% test valid_date_format(model, column_name) %}
+{% test valid_date_of_birth(model, column_name) %}
 
-SELECT 
-    *
+SELECT *
 FROM {{ model }}
-WHERE {{ column_name }} NOT LIKE '____-__-__'
-    OR {{ column_name }} IS NULL 
-    
+WHERE {{ column_name }} IS NOT NULL
+  AND (
+        {{ column_name }} < '1900-01-01'
+        OR {{ column_name }} > CAST(GETDATE() AS DATE)
+      )
+
 {% endtest %}
