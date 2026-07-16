@@ -67,8 +67,8 @@ models:
           European, and month-name formats. Invalid or unrecognized values are
           returned as NULL to preserve data quality while enabling accurate
           age-based analysis and customer segmentation.
-        tests:
-          - not_null
+#        tests:
+#          - valid_date_format
           
 #===================================================================================
 #============================ Model: int_customers_contact =========================
