@@ -69,6 +69,7 @@ models:
           age-based analysis and customer segmentation.
         tests:
           - not_null
+          - valid_date_format
           
 #===================================================================================
 #============================ Model: int_customers_contact =========================
