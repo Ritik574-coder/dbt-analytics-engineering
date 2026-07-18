@@ -37,19 +37,5 @@ SELECT
     END as gender,
 
     {{ standardize_date('date_of_birth') }} AS date_of_birth
-
-    --CASE
-    --    WHEN TRIM(date_of_birth) LIKE '[A-Z][a-z][a-z][a-z]% __, ____' THEN TRY_CONVERT(DATE, TRIM(date_of_birth))
-    --    WHEN TRIM(date_of_birth) LIKE '[A-Z][a-z][a-z] __, ____'       THEN TRY_CONVERT(DATE, TRIM(date_of_birth))
-    --    WHEN TRIM(date_of_birth) LIKE '____-__-__'                     THEN TRY_CONVERT(DATE, TRIM(date_of_birth))
-    --    WHEN TRIM(date_of_birth) LIKE '____/__/__'                     THEN TRY_CONVERT(DATE, TRIM(date_of_birth))
-
-    --    WHEN TRIM(date_of_birth) LIKE '__/__/____' AND TRY_CONVERT(INT, SUBSTRING(TRIM(date_of_birth), 4, 2)) > 12 THEN TRY_CONVERT(DATE, TRIM(date_of_birth), 101)
-    --    WHEN TRIM(date_of_birth) LIKE '__/__/____' AND TRY_CONVERT(INT, LEFT(TRIM(date_of_birth), 2)) > 12         THEN TRY_CONVERT(DATE , TRIM(date_of_birth), 103)
-
-    --    WHEN TRIM(date_of_birth) LIKE '__-__-____' AND TRY_CONVERT(INT, SUBSTRING(TRIM(date_of_birth), 4, 2)) > 12 THEN TRY_CONVERT(DATE, TRIM(date_of_birth), 110)
-    --    WHEN TRIM(date_of_birth) LIKE '__-__-____' AND TRY_CONVERT(INT, LEFT(TRIM(date_of_birth), 2)) > 12         THEN TRY_CONVERT(DATE , TRIM(date_of_birth), 105)
-    --    ELSE TRY_CONVERT(DATE, TRIM(date_of_birth), 101)
-    --END date_of_birth
-
+    
 FROM {{ ref('stg_customers') }} ;

@@ -41,18 +41,7 @@ SELECT
           ELSE TRY_CONVERT(INT, quantity_returned)
     END as quantity_returned,
 
-    CASE 
-        WHEN return_date LIKE '[A-Z][a-z][a-z][a-z] __, ____' THEN TRY_CONVERT(DATE ,return_date)
-        WHEN return_date LIKE '[A-Z][a-z][a-z] __, ____'      THEN TRY_CONVERT(DATE ,return_date)
-        WHEN return_date LIKE '____/__/__'                    THEN TRY_CONVERT(DATE ,return_date)
-        WHEN return_date LIKE '____-__-__'                    THEN TRY_CONVERT(DATE ,return_date)
-
-        WHEN return_date LIKE '__/__/____' AND TRY_CONVERT(INT, SUBSTRING(return_date, 4, 2)) > 12 THEN TRY_CONVERT(DATE, return_date, 101)
-        WHEN return_date LIKE '__/__/____' AND TRY_CONVERT(INT, LEFT(return_date, 2))         > 12 THEN TRY_CONVERT(DATE, return_date, 103)
-        WHEN return_date LIKE '__-__-____' AND TRY_CONVERT(INT, SUBSTRING(return_date, 4, 2)) > 12 THEN TRY_CONVERT(DATE, return_date, 110)
-        WHEN return_date LIKE '__-__-____' AND TRY_CONVERT(INT, LEFT(return_date, 2))         > 12 THEN TRY_CONVERT(DATE, return_date, 105)
-        ELSE TRY_CONVERT(DATE, return_date)
-    END as return_date
+{{ standardize_date('return_date') }} as return_date
 FROM {{ ref('stg_returns') }} ;
 
 

@@ -34,18 +34,7 @@ SELECT
         ELSE dbo.TitleCase(TRIM(department))
     END AS department,
 
-    CASE 
-        WHEN launched_date LIKE '[A-Z][a-z][a-z][a-z] __, ____' THEN TRY_CONVERT(DATE ,launched_date)
-        WHEN launched_date LIKE '[A-Z][a-z][a-z] __, ____'      THEN TRY_CONVERT(DATE ,launched_date)
-        WHEN launched_date LIKE '____/__/__'                    THEN TRY_CONVERT(DATE ,launched_date)
-        WHEN launched_date LIKE '____-__-__'                    THEN TRY_CONVERT(DATE ,launched_date)
-    
-        WHEN launched_date LIKE '__/__/____' AND TRY_CONVERT(INT, SUBSTRING(launched_date, 4, 2)) > 12 THEN TRY_CONVERT(DATE, launched_date, 101)
-        WHEN launched_date LIKE '__-__-____' AND TRY_CONVERT(INT, SUBSTRING(launched_date, 4, 2)) > 12 THEN TRY_CONVERT(DATE, launched_date, 110)
-        WHEN launched_date LIKE '__/__/____' AND TRY_CONVERT(INT, LEFT(launched_date, 2))         > 12 THEN TRY_CONVERT(DATE, launched_date, 103)
-        WHEN launched_date LIKE '__-__-____' AND TRY_CONVERT(INT, LEFT(launched_date, 2))         > 12 THEN TRY_CONVERT(DATE, launched_date, 105)
-        ELSE TRY_CONVERT(DATE, launched_date)
-    END as launched_date,
+    {{ standardize_date('launched_date') }} as launched_date,
 
     CASE 
         WHEN product_url IS NULL OR TRIM(product_url) = '' OR product_url NOT LIKE 'https://%' THEN 'Unknown'

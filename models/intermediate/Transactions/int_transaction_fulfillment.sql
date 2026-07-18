@@ -2,44 +2,10 @@ WITH transaction_fulfillment AS
 (
     SELECT 
         transaction_id,
-
-        CASE 
-            WHEN order_date LIKE '[A-Z][a-z][a-z][a-z]% __, ____' THEN TRY_CONVERT(DATE , order_date)
-            WHEN order_date LIKE '[A-Z][a-z][a-z] __, ____'       THEN TRY_CONVERT(DATE , order_date)
-            WHEN order_date LIKE '____/__/__'                     THEN TRY_CONVERT(DATE , order_date)
-            WHEN order_date LIKE '____-__-__'                     THEN TRY_CONVERT(DATE , order_date)
-            WHEN order_date LIKE '__/__/____' AND TRY_CONVERT(INT, SUBSTRING(order_date, 4, 2)) > 12 THEN TRY_CONVERT(DATE, order_date, 101)
-            WHEN order_date LIKE '__-__-____' AND TRY_CONVERT(INT, SUBSTRING(order_date, 4, 2)) > 12 THEN TRY_CONVERT(DATE, order_date, 110)
-            WHEN order_date LIKE '__/__/____' AND TRY_CONVERT(INT, LEFT(order_date, 2)) > 12         THEN TRY_CONVERT(DATE, order_date, 103) 
-            WHEN order_date LIKE '__-__-____' AND TRY_CONVERT(INT, LEFT(order_date, 2)) > 12         THEN TRY_CONVERT(DATE, order_date, 105) 
-            ELSE TRY_CONVERT(DATE, TRIM(order_date), 101)
-        END as order_date,
-
+        {{ standardize_date('order_date') }} as order_date,
         order_month,
-
-        CASE 
-            WHEN ship_date LIKE '[A-Z][a-z][a-z][a-z]% __, ____' THEN TRY_CONVERT(DATE , ship_date)
-            WHEN ship_date LIKE '[A-Z][a-z][a-z] __, ____'       THEN TRY_CONVERT(DATE , ship_date)
-            WHEN ship_date LIKE '____/__/__'                     THEN TRY_CONVERT(DATE , ship_date)
-            WHEN ship_date LIKE '____-__-__'                     THEN TRY_CONVERT(DATE , ship_date)
-            WHEN ship_date LIKE '__/__/____' AND TRY_CONVERT(INT, SUBSTRING(ship_date, 4, 2)) > 12 THEN TRY_CONVERT(DATE, ship_date, 101)
-            WHEN ship_date LIKE '__-__-____' AND TRY_CONVERT(INT, SUBSTRING(ship_date, 4, 2)) > 12 THEN TRY_CONVERT(DATE, ship_date, 110)
-            WHEN ship_date LIKE '__/__/____' AND TRY_CONVERT(INT, LEFT(ship_date, 2)) > 12         THEN TRY_CONVERT(DATE, ship_date, 103) 
-            WHEN ship_date LIKE '__-__-____' AND TRY_CONVERT(INT, LEFT(ship_date, 2)) > 12         THEN TRY_CONVERT(DATE, ship_date, 105) 
-            ELSE TRY_CONVERT(DATE, TRIM(ship_date), 101)
-        END as ship_date,
-
-        CASE 
-            WHEN delivery_date LIKE '[A-Z][a-z][a-z][a-z]% __, ____' THEN TRY_CONVERT(DATE , delivery_date)
-            WHEN delivery_date LIKE '[A-Z][a-z][a-z] __, ____'       THEN TRY_CONVERT(DATE , delivery_date)
-            WHEN delivery_date LIKE '____/__/__'                     THEN TRY_CONVERT(DATE , delivery_date)
-            WHEN delivery_date LIKE '____-__-__'                     THEN TRY_CONVERT(DATE , delivery_date)
-            WHEN delivery_date LIKE '__/__/____' AND TRY_CONVERT(INT, SUBSTRING(delivery_date, 4, 2)) > 12 THEN TRY_CONVERT(DATE, delivery_date, 101)
-            WHEN delivery_date LIKE '__-__-____' AND TRY_CONVERT(INT, SUBSTRING(delivery_date, 4, 2)) > 12 THEN TRY_CONVERT(DATE, delivery_date, 110)
-            WHEN delivery_date LIKE '__/__/____' AND TRY_CONVERT(INT, LEFT(delivery_date, 2)) > 12         THEN TRY_CONVERT(DATE, delivery_date, 103) 
-            WHEN delivery_date LIKE '__-__-____' AND TRY_CONVERT(INT, LEFT(delivery_date, 2)) > 12         THEN TRY_CONVERT(DATE, delivery_date, 105) 
-            ELSE TRY_CONVERT(DATE, TRIM(delivery_date), 101)
-        END as delivery_date,
+        {{ standardize_date('ship_date') }} as ship_date,
+        {{ standardize_date('delivery_date') }} as delivery_date,
 
         CASE 
             WHEN TRIM(LOWER(shipping_method)) IN ('pickup', 'in-store pickup')       THEN 'Store Pickup'
