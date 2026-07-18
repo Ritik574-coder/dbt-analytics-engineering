@@ -1,28 +1,37 @@
 {% macro standardize_date(column_name) %}
+{% set col = "TRIM(" ~ column_name ~ ")" %}
 
-CASE
-    WHEN TRIM({{ column_name }}) LIKE '[A-Z][a-z][a-z][a-z]% __, ____'
-        THEN TRY_CONVERT(DATE, TRIM({{ column_name }}))
+    CASE
+        WHEN {{ col }} LIKE '[A-Z][a-z][a-z][a-z]% __, ____'
+            THEN TRY_CONVERT(DATE, {{ col }})
 
-    WHEN TRIM({{ column_name }}) LIKE '[A-Z][a-z][a-z] __, ____'
-        THEN TRY_CONVERT(DATE, TRIM({{ column_name }}))
+        WHEN {{ col }} LIKE '[A-Z][a-z][a-z] __, ____'
+            THEN TRY_CONVERT(DATE, {{ col }})
 
-    WHEN TRIM({{ column_name }}) LIKE '____-__-__'
-        THEN TRY_CONVERT(DATE, TRIM({{ column_name }}))
+        WHEN {{ col }} LIKE '__-__-____'
+            AND TRY_CONVERT(INT, SUBSTRING({{ col }}, 4, 2)) > 12
+            THEN TRY_CONVERT(DATE, {{ col }}, 110)
 
-    WHEN TRIM({{ column_name }}) LIKE '____/__/__'
-        THEN TRY_CONVERT(DATE, TRIM({{ column_name }}))
+        WHEN {{ col }} LIKE '__-__-____'
+            AND TRY_CONVERT(INT, LEFT({{ col }}, 2)) > 12
+            THEN TRY_CONVERT(DATE, {{ col }}, 105)
 
-    WHEN TRIM({{ column_name }}) LIKE '__/__/____'
-         AND TRY_CONVERT(INT, SUBSTRING(TRIM({{ column_name }}), 4, 2)) > 12
-        THEN TRY_CONVERT(DATE, TRIM({{ column_name }}), 101)
+        WHEN {{ col }} LIKE '____-__-__'
+            THEN TRY_CONVERT(DATE, {{ col }})
 
-    WHEN TRIM({{ column_name }}) LIKE '__/__/____'
-         AND TRY_CONVERT(INT, LEFT(TRIM({{ column_name }}), 2)) > 12
-        THEN TRY_CONVERT(DATE, TRIM({{ column_name }}), 103)
+        WHEN {{ col }} LIKE '____/__/__'
+            THEN TRY_CONVERT(DATE, {{ col }})
 
-    ELSE TRY_CONVERT(DATE, TRIM({{ column_name }}), 101)
+        WHEN {{ col }} LIKE '__/__/____'
+            AND TRY_CONVERT(INT, SUBSTRING({{ col }}, 4, 2)) > 12
+            THEN TRY_CONVERT(DATE, {{ col }}, 101)
 
-END
+        WHEN {{ col }} LIKE '__/__/____'
+            AND TRY_CONVERT(INT, LEFT({{ col }}, 2)) > 12
+            THEN TRY_CONVERT(DATE, {{ col }}, 103)
+
+        ELSE TRY_CONVERT(DATE, {{ col }}, 101)
+
+    END
 
 {% endmacro %}

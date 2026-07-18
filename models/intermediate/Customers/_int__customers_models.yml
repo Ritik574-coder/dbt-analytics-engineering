@@ -25,6 +25,20 @@ models:
       segmentation, demographic analysis, personalization, and downstream
       dimensional models.
 
+    meta:
+      owner: "Analytics Engineering"
+      email: "analytics@company.com"
+      team: "Data Platform"
+
+      business_owner: "Sales Department"
+      domain: "Sales"
+
+      pii: True
+      criticality: "High"
+      refresh_frequency: "Daily"
+      environment: "Development"
+      steward: "Ritik Kumar"
+
     columns:
       - name: title
         description: |

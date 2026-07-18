@@ -155,3 +155,6 @@ jobs:
 
       - name: dbt test
         run: dbt test
+
+      - name: dbt build
+        run: dbt build

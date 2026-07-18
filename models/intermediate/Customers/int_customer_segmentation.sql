@@ -41,17 +41,6 @@ SELECT
          ELSE 'Unknown'
     END AS is_active,
 
-    CASE
-        WHEN TRIM(account_created_date) LIKE '[A-Z][a-z][a-z] __, ____'       THEN CONVERT(DATE,account_created_date)
-        WHEN TRIM(account_created_date) LIKE '[A-Z][a-z][a-z][a-z]% __, ____' THEN CONVERT(DATE,account_created_date)
-        WHEN TRIM(account_created_date) LIKE '____/__/__'                     THEN CONVERT(DATE,account_created_date)
-        WHEN TRIM(account_created_date) LIKE '____-__-__'                     THEN CONVERT(DATE,account_created_date)
-
-        WHEN TRIM(account_created_date) LIKE '__-__-____' AND TRY_CONVERT(INT, LEFT(account_created_date,2)) > 12          THEN TRY_CONVERT(DATE, account_created_date, 105)
-        WHEN TRIM(account_created_date) LIKE '__-__-____' AND TRY_CONVERT(INT, SUBSTRING(account_created_date,4,2)) > 12   THEN TRY_CONVERT(DATE, account_created_date, 110)
-        WHEN TRIM(account_created_date) LIKE '__/__/____' AND TRY_CONVERT(INT, LEFT(account_created_date,2)) > 12          THEN TRY_CONVERT(DATE, account_created_date, 103)
-        WHEN TRIM(account_created_date) LIKE '__/__/____' AND TRY_CONVERT(INT, SUBSTRING(account_created_date, 4, 2)) > 12 THEN TRY_CONVERT(DATE, account_created_date, 101)
-        ELSE TRY_CONVERT(DATE, account_created_date,101)
-    END as account_created_date
+    {{ standardize_date('account_created_date') }} as account_created_date
 
 FROM {{ ref('stg_customers') }} ;
