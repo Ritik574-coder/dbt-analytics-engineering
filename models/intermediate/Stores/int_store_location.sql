@@ -53,13 +53,6 @@ SELECT
         ELSE TRIM(dbo.TitleCase(district))
     END as district,
 
-    CASE 
-        WHEN TRIM(phone) LIKE '(___) ___-____' THEN CONCAT('+1 ',  SUBSTRING(TRIM(phone), 1, 14))
-        WHEN TRIM(phone) LIKE '+___________'   THEN CONCAT('+1 (', SUBSTRING(TRIM(phone), 3, 3), ') ', SUBSTRING(TRIM(phone), 6, 3),'-',  SUBSTRING(TRIM(phone), 9,4))
-        WHEN TRIM(phone) LIKE '___-___-____'   THEN CONCAT('+1 (', SUBSTRING(TRIM(phone), 1, 3), ') ', SUBSTRING(TRIM(phone), 5, 8))
-        WHEN TRIM(phone) LIKE '___.___.____'   THEN CONCAT('+1 (', SUBSTRING(TRIM(phone), 1, 3), ') ', SUBSTRING(TRIM(phone), 5, 3), '-', SUBSTRING(TRIM(phone), 9, 4))
-        WHEN TRIM(phone) LIKE '__________'     THEN CONCAT('+1 (', SUBSTRING(TRIM(phone), 1, 3), ') ', SUBSTRING(TRIM(phone), 4, 3), '-', SUBSTRING(TRIM(phone), 7, 4))
-        ELSE TRIM(phone)
-    END as phone
+    {{ standardize_phone('phone') }} as phone
 FROM {{ ref('stg_stores') }} ;
 

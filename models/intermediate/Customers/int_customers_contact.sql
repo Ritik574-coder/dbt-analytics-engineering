@@ -48,16 +48,8 @@ SELECT
                 END
         )
     END AS email,
-
-    CASE 
-        WHEN TRIM(phone) LIKE '+1__________'   THEN CONCAT('+1 (', SUBSTRING(TRIM(phone), 3, 3), ') ', SUBSTRING(TRIM(phone), 6, 3),'-',   SUBSTRING(TRIM(phone),9,4))
-        WHEN TRIM(phone) LIKE '__________'     THEN CONCAT('+1 (', SUBSTRING(TRIM(phone), 1 ,3), ') ', SUBSTRING(TRIM(phone), 4 ,3), '-',  SUBSTRING(TRIM(phone), 7, 4))
-        WHEN TRIM(phone) LIKE '___-___-____'   THEN CONCAT('+1 (', SUBSTRING(TRIM(phone), 1, 3), ') ', SUBSTRING(TRIM(phone), 5, 3),       SUBSTRING(TRIM(phone), 8 ,5))
-        WHEN TRIM(phone) LIKE '___.___.____'   THEN CONCAT('+1 (', SUBSTRING(TRIM(phone), 1, 3), ') ', SUBSTRING(TRIM(phone), 5, 3), '-',  SUBSTRING(TRIM(phone),9, 4))
-        WHEN TRIM(phone) LIKE '(___) ___-____' THEN CONCAT('+1 ',  SUBSTRING(TRIM(phone), 1, 14))
-        WHEN TRIM(phone) IS NULL OR TRIM(phone) = '' THEN 'Unknown'
-        ELSE 'Unknown'
-    END  as phone,
+    
+    {{ standardize_phone('phone') }}  as phone,
 
     CASE TRIM(LOWER(preferred_channel))
         WHEN 'app'        THEN 'Mobile App'
