@@ -36,8 +36,8 @@ SELECT
     END as company,
 
     CASE 
-         WHEN TRIM(LOWER(is_active)) IN ('1', 'active', 'true', 'y', 'yes')   THEN 'True'
-         WHEN TRIM(LOWER(is_active)) IN ('0', 'inactive', 'false', 'n', 'no') THEN 'False'
+         WHEN {{ trim_lower('is_active') }} IN ('1', 'active', 'true', 'y', 'yes')   THEN 'True'
+         WHEN {{ trim_lower('is_active') }} IN ('0', 'inactive', 'false', 'n', 'no') THEN 'False'
          ELSE 'Unknown'
     END AS is_active,
 

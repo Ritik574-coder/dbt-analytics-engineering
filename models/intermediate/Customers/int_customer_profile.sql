@@ -24,7 +24,7 @@ SELECT
 
     PARSENAME(REPLACE(TRIM(full_name), ' ', '.'), 1) AS last_name,
 
-    CASE TRIM(LOWER(gender))
+    CASE {{ trim_lower('gender') }}
         WHEN 'f' THEN 'Female'
         WHEN 'female' THEN 'Female'
         WHEN 'm' THEN 'Male'

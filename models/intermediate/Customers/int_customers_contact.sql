@@ -17,33 +17,33 @@ SELECT
 
     CASE
         WHEN email IS NULL OR TRIM(email) = '' THEN 'Unknown'
-        WHEN TRIM(LOWER(email)) NOT LIKE '%@%' THEN 'Unknown'
-        WHEN PATINDEX('%@%@%', TRIM(LOWER(email))) > 0 THEN
-                LEFT(TRIM(LOWER(email)),CHARINDEX('@', TRIM(LOWER(email))) - 1)
+        WHEN {{ trim_lower('email') }} NOT LIKE '%@%' THEN 'Unknown'
+        WHEN PATINDEX('%@%@%', {{ trim_lower('email') }}) > 0 THEN
+                LEFT({{ trim_lower('email') }},CHARINDEX('@', {{ trim_lower('email') }}) - 1)
                 + '@' +
                 REPLACE(
                     SUBSTRING(
-                        TRIM(LOWER(email)),
-                        CHARINDEX('@', TRIM(LOWER(email))) + 1,
+                        {{ trim_lower('email') }},
+                        CHARINDEX('@', {{ trim_lower('email') }}) + 1,
                         LEN(email)),'@','')
         ELSE
             CONCAT(
-                LEFT(TRIM(LOWER(email)),CHARINDEX('@', TRIM(LOWER(email))) - 1), '@',
+                LEFT({{ trim_lower('email') }},CHARINDEX('@', {{ trim_lower('email') }}) - 1), '@',
                 CASE
                     WHEN RIGHT(
-                        TRIM(LOWER(email)),
+                        {{ trim_lower('email') }},
                         LEN(TRIM(email)) - CHARINDEX('@', TRIM(email))) = 'yahoocom' THEN 'yahoo.com'
                     WHEN RIGHT(
-                        TRIM(LOWER(email)),
+                        {{ trim_lower('email') }},
                         LEN(TRIM(email)) - CHARINDEX('@', TRIM(email))) = 'iclod.com' THEN 'icloud.com'
                     WHEN RIGHT(
-                        TRIM(LOWER(email)),
+                        {{ trim_lower('email') }},
                         LEN(TRIM(email)) - CHARINDEX('@', TRIM(email))) = 'outook.com' THEN 'outlook.com'
                     WHEN RIGHT(
-                        TRIM(LOWER(email)),
+                        {{ trim_lower('email') }},
                         LEN(TRIM(email)) - CHARINDEX('@', TRIM(email))) = 'ahoo.com' THEN 'yahoo.com'
                     ELSE RIGHT(
-                        TRIM(LOWER(email)),
+                        {{ trim_lower('email') }},
                         LEN(TRIM(email)) - CHARINDEX('@', TRIM(email)))
                 END
         )
@@ -51,7 +51,7 @@ SELECT
     
     {{ standardize_phone('phone') }}  as phone,
 
-    CASE TRIM(LOWER(preferred_channel))
+    CASE {{ trim_lower('preferred_channel') }}
         WHEN 'app'        THEN 'Mobile App'
         WHEN 'mobile app' THEN 'Mobile App'
         WHEN 'mobile'     THEN 'Mobile App'

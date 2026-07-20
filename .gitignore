@@ -111,3 +111,6 @@ docker-data/
 *.log
 my_intro.md
 mart_stracture.t
+mart_stracture.t
+.git
+~/.git
