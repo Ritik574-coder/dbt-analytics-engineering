@@ -41,10 +41,10 @@ SELECT
     END AS commission_rate_pct,
 
     CASE
-        WHEN TRIM(LOWER(performance_rating)) IN ('excellent', 'a', '5')     THEN 'Excellent'
-        WHEN TRIM(LOWER(performance_rating)) IN ('good', 'b', '4')          THEN 'Good'
-        WHEN TRIM(LOWER(performance_rating)) IN ('average', 'c', '3')       THEN 'Average'
-        WHEN TRIM(LOWER(performance_rating)) IN ('below average', 'd', '2') THEN 'Below Average'
+        WHEN {{ trim_lower('performance_rating') }} IN ('excellent', 'a', '5')     THEN 'Excellent'
+        WHEN {{ trim_lower('performance_rating') }} IN ('good', 'b', '4')          THEN 'Good'
+        WHEN {{ trim_lower('performance_rating') }} IN ('average', 'c', '3')       THEN 'Average'
+        WHEN {{ trim_lower('performance_rating') }} IN ('below average', 'd', '2') THEN 'Below Average'
         WHEN performance_rating IS NULL OR TRIM(performance_rating) = ''    THEN 'Unknown'
         ELSE 'Unknown'
     END AS performance_rating,
@@ -62,8 +62,8 @@ SELECT
     END as manager_id,
 
     CASE
-        WHEN TRIM(LOWER(is_active)) IN ('active', 'y', 'yes', '1', 'true')     THEN 'True'
-        WHEN TRIM(LOWER(is_active)) IN ('terminated', 'n', 'no', '0', 'false') THEN 'False'
+        WHEN {{ trim_lower('is_active') }} IN ('active', 'y', 'yes', '1', 'true')     THEN 'True'
+        WHEN {{ trim_lower('is_active') }} IN ('terminated', 'n', 'no', '0', 'false') THEN 'False'
         ELSE NULL
     END AS is_active
 FROM {{ ref('stg_employees') }} ;

@@ -19,16 +19,16 @@ SELECT
     END as sku,
 
     CASE 
-        WHEN TRIM(LOWER(category)) = 'electronics' THEN 'Electronics'
-        WHEN TRIM(LOWER(category)) = 'clothing'    THEN 'Clothing'
-        WHEN TRIM(LOWER(category)) = 'kitchen'     THEN 'Kitchen'
-        WHEN TRIM(LOWER(category)) = 'office'      THEN 'Office'
-        WHEN TRIM(LOWER(category)) = 'sports'      THEN 'Sports'
-        WHEN TRIM(LOWER(category)) = 'health'      THEN 'Health'
-        WHEN TRIM(LOWER(category)) = 'beauty'      THEN 'Beauty'
-        WHEN TRIM(LOWER(category)) = 'footwear'    THEN 'Footwear'
-        WHEN TRIM(LOWER(category)) = 'toys'        THEN 'Toys'
-        WHEN TRIM(LOWER(category)) = 'bags'        THEN 'Bags'
+        WHEN {{ trim_lower('category') }} = 'electronics' THEN 'Electronics'
+        WHEN {{ trim_lower('category') }} = 'clothing'    THEN 'Clothing'
+        WHEN {{ trim_lower('category') }} = 'kitchen'     THEN 'Kitchen'
+        WHEN {{ trim_lower('category') }} = 'office'      THEN 'Office'
+        WHEN {{ trim_lower('category') }} = 'sports'      THEN 'Sports'
+        WHEN {{ trim_lower('category') }} = 'health'      THEN 'Health'
+        WHEN {{ trim_lower('category') }} = 'beauty'      THEN 'Beauty'
+        WHEN {{ trim_lower('category') }} = 'footwear'    THEN 'Footwear'
+        WHEN {{ trim_lower('category') }} = 'toys'        THEN 'Toys'
+        WHEN {{ trim_lower('category') }} = 'bags'        THEN 'Bags'
         ELSE 'Unknown'
     END AS category
 FROM {{ ref('stg_inventory') }} ;

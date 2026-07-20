@@ -43,30 +43,46 @@ SELECT
     END AS city,
     
     CASE 
-        WHEN TRIM(UPPER(state_abbr)) IS NULL OR TRIM(UPPER(state_abbr)) = '' THEN 'Unknown'
-        WHEN LEN(TRIM(UPPER(state_abbr))) != 2 THEN 'Unknown'
+        WHEN TRIM(UPPER(state_abbr)) IS NULL OR TRIM(UPPER(state_abbr)) = '' 
+            THEN 'Unknown'
+
+        WHEN LEN(TRIM(UPPER(state_abbr))) != 2 
+            THEN 'Unknown'
+            
         ELSE TRIM(UPPER(state_abbr))
     END as state_abbr,
 
     CASE
-        WHEN TRIM(state_full) IS NULL OR TRIM(state_full) = '' THEN 'Unknown'
+        WHEN TRIM(state_full) IS NULL OR TRIM(state_full) = '' 
+            THEN 'Unknown'
+
         ELSE TRIM(state_full)
     END AS state,
 
     CASE 
-        WHEN zip_code IS NULL THEN 0
-        WHEN LEN(zip_code) != 5 THEN 0
-        WHEN TRY_CAST(zip_code AS INT) IS NULL THEN 0
+        WHEN zip_code IS NULL 
+            THEN 0
+            
+        WHEN LEN(zip_code) != 5 
+            THEN 0
+
+        WHEN TRY_CAST(zip_code AS INT) IS NULL 
+            THEN 0
+
         ELSE zip_code
     END as zip_code,
 
     CASE 
-         WHEN TRIM(LOWER(country)) IN ('u.s.a', 'us', 'usa', 'united states') THEN 'United States'
-         ELSE 'Unknown'
+        WHEN {{ trim_lower('country') }} IN ('u.s.a', 'us', 'usa', 'united states') 
+            THEN 'United States'
+
+        ELSE 'Unknown'
     END as country,
 
     CASE 
-         WHEN region IS NULL OR TRIM(region) = '' THEN 'Unknown'
-         ELSE TRIM(region)
+        WHEN region IS NULL OR TRIM(region) = '' 
+            THEN 'Unknown'
+
+        ELSE TRIM(region)
     END as region
 FROM {{ ref('stg_customers') }} ;

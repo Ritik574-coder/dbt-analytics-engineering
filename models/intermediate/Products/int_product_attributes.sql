@@ -38,7 +38,7 @@ SELECT
 
     CASE 
         WHEN product_url IS NULL OR TRIM(product_url) = '' OR product_url NOT LIKE 'https://%' THEN 'Unknown'
-        ELSE REPLACE(REPLACE(TRIM(LOWER(product_url)), CHAR(13), ''),CHAR(10), '')
+        ELSE REPLACE(REPLACE({{ trim_lower('product_url') }}, CHAR(13), ''),CHAR(10), '')
     END as product_url
 FROM {{ ref('stg_products') }} ;
 

@@ -2,9 +2,9 @@ SELECT
     product_id,
     
     CASE
-        WHEN LOWER(TRIM(is_available)) IN ('a','y','ye','1','t','tr','in','i') THEN 'Available'
-        WHEN LOWER(TRIM(is_available)) IN ('n','no','o','ou') THEN 'Not Available'
-        WHEN LOWER(TRIM(is_available)) IN ('d','di') THEN 'Discontinued'
+        WHEN {{ trim_lower('is_available') }} IN ('a','y','ye','1','t','tr','in','i') THEN 'Available'
+        WHEN {{ trim_lower('is_available') }} IN ('n','no','o','ou') THEN 'Not Available'
+        WHEN {{ trim_lower('is_available') }} IN ('d','di') THEN 'Discontinued'
         ELSE 'Unknown'
     END AS is_available,
 
