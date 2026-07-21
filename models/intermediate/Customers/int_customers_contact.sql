@@ -17,8 +17,11 @@ SELECT
 
     CASE
         WHEN email IS NULL OR TRIM(email) = '' THEN 'Unknown'
-        WHEN {{ trim_lower('email') }} NOT LIKE '%@%' THEN 'Unknown'
-        WHEN PATINDEX('%@%@%', {{ trim_lower('email') }}) > 0 THEN
+        WHEN {{ trim_lower('email') }} NOT LIKE '%@%' 
+            THEN 'Unknown'
+
+        WHEN PATINDEX('%@%@%', {{ trim_lower('email') }}) > 0 
+            THEN
                 LEFT({{ trim_lower('email') }},CHARINDEX('@', {{ trim_lower('email') }}) - 1)
                 + '@' +
                 REPLACE(
@@ -33,15 +36,19 @@ SELECT
                     WHEN RIGHT(
                         {{ trim_lower('email') }},
                         LEN(TRIM(email)) - CHARINDEX('@', TRIM(email))) = 'yahoocom' THEN 'yahoo.com'
+
                     WHEN RIGHT(
                         {{ trim_lower('email') }},
                         LEN(TRIM(email)) - CHARINDEX('@', TRIM(email))) = 'iclod.com' THEN 'icloud.com'
+
                     WHEN RIGHT(
                         {{ trim_lower('email') }},
                         LEN(TRIM(email)) - CHARINDEX('@', TRIM(email))) = 'outook.com' THEN 'outlook.com'
+
                     WHEN RIGHT(
                         {{ trim_lower('email') }},
                         LEN(TRIM(email)) - CHARINDEX('@', TRIM(email))) = 'ahoo.com' THEN 'yahoo.com'
+
                     ELSE RIGHT(
                         {{ trim_lower('email') }},
                         LEN(TRIM(email)) - CHARINDEX('@', TRIM(email)))
