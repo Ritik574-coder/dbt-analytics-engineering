@@ -19,7 +19,9 @@ SELECT
     customer_id,
 
     CASE 
-        WHEN address IS NULL OR address = '' THEN 'Unknown'
+        WHEN address IS NULL OR address = '' 
+            THEN 'Unknown'
+
         ELSE TRIM(dbo.TitleCase(address))
     END as address,
 

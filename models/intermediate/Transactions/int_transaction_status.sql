@@ -27,8 +27,12 @@ SELECT
     END AS order_status,
 
     CASE 
-        WHEN TRIM(LOWER(is_returned)) IN ('yes', 'y', 'true', '1') THEN 'True'
-        WHEN TRIM(LOWER(is_returned)) IN ('no', 'n', 'false', '0') THEN 'False'
+        WHEN TRIM(LOWER(is_returned)) IN ('yes', 'y', 'true', '1') 
+            THEN 'True'
+
+        WHEN TRIM(LOWER(is_returned)) IN ('no', 'n', 'false', '0') 
+            THEN 'False'
+            
         ELSE 'Unknown'
     END AS is_returned,
 

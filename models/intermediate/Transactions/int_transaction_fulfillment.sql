@@ -2,27 +2,50 @@ WITH transaction_fulfillment AS
 (
     SELECT 
         transaction_id,
+
         {{ standardize_date('order_date') }} as order_date,
-        order_month,
         {{ standardize_date('ship_date') }} as ship_date,
         {{ standardize_date('delivery_date') }} as delivery_date,
+        order_month,
 
         CASE 
-            WHEN TRIM(LOWER(shipping_method)) IN ('pickup', 'in-store pickup')       THEN 'Store Pickup'
-            WHEN TRIM(LOWER(shipping_method)) IN ('overnight', 'overnight shipping') THEN 'Overnight Shipping'
-            WHEN TRIM(LOWER(shipping_method)) IN ('same day', 'same day delivery')   THEN 'Same Day Delivery'
-            WHEN TRIM(LOWER(shipping_method)) IN ('express', 'express shipping')     THEN 'Express Shipping'
-            WHEN TRIM(LOWER(shipping_method)) IN ('standard', 'standard shipping')   THEN 'Standard Shipping'
-            WHEN TRIM(LOWER(shipping_method)) IN ('free ship', 'free shipping')      THEN 'Free Shipping'
+            WHEN TRIM(LOWER(shipping_method)) IN ('pickup', 'in-store pickup')       
+                THEN 'Store Pickup'
+
+            WHEN TRIM(LOWER(shipping_method)) IN ('overnight', 'overnight shipping') 
+                THEN 'Overnight Shipping'
+
+            WHEN TRIM(LOWER(shipping_method)) IN ('same day', 'same day delivery')   
+                THEN 'Same Day Delivery'
+
+            WHEN TRIM(LOWER(shipping_method)) IN ('express', 'express shipping')     
+                THEN 'Express Shipping'
+
+            WHEN TRIM(LOWER(shipping_method)) IN ('standard', 'standard shipping')   
+                THEN 'Standard Shipping'
+
+            WHEN TRIM(LOWER(shipping_method)) IN ('free ship', 'free shipping')      
+                THEN 'Free Shipping'
+
             ELSE TRIM(shipping_method)
         END AS shipping_method,
 
         CASE 
-            WHEN TRIM(LOWER(sales_channel)) IN ('app', 'mobile', 'mobile app')   THEN 'Mobile App'
-            WHEN TRIM(LOWER(sales_channel)) IN ('store', 'in store', 'in-store') THEN 'In Store'
-            WHEN TRIM(LOWER(sales_channel)) IN ('online', 'web')                 THEN 'Website'
-            WHEN TRIM(LOWER(sales_channel)) IN ('phone')                         THEN 'Phone Call'
-            WHEN TRIM(LOWER(sales_channel)) IN ('catalog')                       THEN 'Catalog'
+            WHEN TRIM(LOWER(sales_channel)) IN ('app', 'mobile', 'mobile app')   
+                THEN 'Mobile App'
+
+            WHEN TRIM(LOWER(sales_channel)) IN ('store', 'in store', 'in-store') 
+                THEN 'In Store'
+
+            WHEN TRIM(LOWER(sales_channel)) IN ('online', 'web')                 
+                THEN 'Website'
+
+            WHEN TRIM(LOWER(sales_channel)) IN ('phone')                         
+                THEN 'Phone Call'
+
+            WHEN TRIM(LOWER(sales_channel)) IN ('catalog')                       
+                THEN 'Catalog'
+
             ELSE 'Unknown'
         END AS sales_channel,
 
@@ -50,7 +73,9 @@ order_date_cleaning AS
         transaction_id,
 
         CASE 
-            WHEN order_month != MONTH(order_date) THEN DATEFROMPARTS(YEAR(order_date), DAY(order_date), MONTH(order_date))
+            WHEN order_month != MONTH(order_date) 
+                THEN DATEFROMPARTS(YEAR(order_date), DAY(order_date), MONTH(order_date))
+
             ELSE order_date
         END AS order_date,
 
@@ -63,17 +88,21 @@ order_date_cleaning AS
 
         CASE 
             WHEN record_created IS NULL 
-            OR record_created NOT LIKE '____-__-__' 
-            OR TRY_CONVERT(DATE, record_created) IS NULL 
-            OR YEAR(record_created) < 2019  THEN NULL 
+              OR record_created NOT LIKE '____-__-__' 
+              OR TRY_CONVERT(DATE, record_created) IS NULL 
+              OR YEAR(record_created) < 2019  
+                THEN NULL 
+
             ELSE record_created
         END as record_created,
 
         CASE 
             WHEN last_modified IS NULL 
-            OR last_modified NOT LIKE '____-__-__' 
-            OR TRY_CONVERT(DATE, last_modified) IS NULL 
-            OR YEAR(last_modified) < 2019  THEN NULL 
+              OR last_modified NOT LIKE '____-__-__' 
+              OR TRY_CONVERT(DATE, last_modified) IS NULL 
+              OR YEAR(last_modified) < 2019  
+                THEN NULL 
+
             ELSE last_modified
         END as last_modified
 
@@ -86,9 +115,15 @@ ship_date_cleaning AS
         order_date ,
 
         CASE
-            WHEN DATEDIFF(DAY ,order_date, ship_date) < 0 THEN DATEFROMPARTS(YEAR(ship_date), DAY(ship_date), MONTH(ship_date))
-            WHEN DATEDIFF(DAY ,order_date, ship_date) > 15 THEN DATEFROMPARTS(YEAR(ship_date), DAY(ship_date), MONTH(ship_date))
-            WHEN ship_date IS NULL THEN DATEADD(DAY, 7, order_date)
+            WHEN DATEDIFF(DAY ,order_date, ship_date) < 0 
+                THEN DATEFROMPARTS(YEAR(ship_date), DAY(ship_date), MONTH(ship_date))
+
+            WHEN DATEDIFF(DAY ,order_date, ship_date) > 15 
+                THEN DATEFROMPARTS(YEAR(ship_date), DAY(ship_date), MONTH(ship_date))
+
+            WHEN ship_date IS NULL 
+                THEN DATEADD(DAY, 7, order_date)
+                
             ELSE ship_date 
         END as ship_date ,
 
@@ -108,8 +143,12 @@ int_transaction_fulfillment AS
         ship_date,
 
         CASE 
-            WHEN DATEDIFF(DAY, ship_date , delivery_date) >  17 THEN DATEFROMPARTS(YEAR(delivery_date), DAY(delivery_date), MONTH(delivery_date))
-            WHEN DATEDIFF(DAY, ship_date , delivery_date) < -15 THEN DATEFROMPARTS(YEAR(delivery_date), DAY(delivery_date), MONTH(delivery_date))
+            WHEN DATEDIFF(DAY, ship_date , delivery_date) >  17 
+                THEN DATEFROMPARTS(YEAR(delivery_date), DAY(delivery_date), MONTH(delivery_date))
+
+            WHEN DATEDIFF(DAY, ship_date , delivery_date) < -15 
+                THEN DATEFROMPARTS(YEAR(delivery_date), DAY(delivery_date), MONTH(delivery_date))
+
             ELSE delivery_date
         END as delivery_date,
 

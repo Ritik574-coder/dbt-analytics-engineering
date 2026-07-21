@@ -16,9 +16,11 @@
 SELECT
     customer_id,
     CASE 
-        WHEN customer_segment IS NULL OR customer_segment = '' THEN 'Unknown' 
+        WHEN customer_segment IS NULL OR customer_segment = '' 
+            THEN 'Unknown' 
+
         ELSE customer_segment
-    END as customer_segment, -- distinct value is Bronze Gold Platinum Silver
+    END as customer_segment, 
 
     TRY_CAST(loyalty_points AS INT) as loyalty_points,
 
@@ -30,14 +32,22 @@ SELECT
     ) as annual_income_usd,
 
     CASE 
-        WHEN company IS NULL OR company = '' THEN 'Unknown'
-        WHEN TRIM(REPLACE(REPLACE(company, CHAR(13), ''), CHAR(10), '')) = '' THEN 'Unknown'
+        WHEN company IS NULL OR company = '' 
+            THEN 'Unknown'
+
+        WHEN TRIM(REPLACE(REPLACE(company, CHAR(13), ''), CHAR(10), '')) = '' 
+            THEN 'Unknown'
+
         ELSE TRIM(REPLACE(REPLACE(company, CHAR(13), ''), CHAR(10), ''))
     END as company,
 
     CASE 
-         WHEN {{ trim_lower('is_active') }} IN ('1', 'active', 'true', 'y', 'yes')   THEN 'True'
-         WHEN {{ trim_lower('is_active') }} IN ('0', 'inactive', 'false', 'n', 'no') THEN 'False'
+         WHEN {{ trim_lower('is_active') }} IN ('1', 'active', 'true', 'y', 'yes')   
+            THEN 'True'
+
+         WHEN {{ trim_lower('is_active') }} IN ('0', 'inactive', 'false', 'n', 'no') 
+            THEN 'False'
+
          ELSE 'Unknown'
     END AS is_active,
 

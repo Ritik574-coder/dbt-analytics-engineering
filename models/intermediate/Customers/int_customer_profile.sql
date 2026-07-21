@@ -18,8 +18,12 @@ SELECT
     TRIM(title) as title,
 
     CASE
-        WHEN LEN(TRIM(full_name)) - LEN(REPLACE(TRIM(full_name), ' ', '')) = 2 THEN PARSENAME(REPLACE(TRIM(full_name), ' ', '.'), 2)
-        WHEN LEN(TRIM(full_name)) - LEN(REPLACE(TRIM(full_name), ' ', '')) = 1 THEN PARSENAME(REPLACE(TRIM(full_name), ' ', '.'), 2)
+        WHEN LEN(TRIM(full_name)) - LEN(REPLACE(TRIM(full_name), ' ', '')) = 2 
+            THEN PARSENAME(REPLACE(TRIM(full_name), ' ', '.'), 2)
+
+        WHEN LEN(TRIM(full_name)) - LEN(REPLACE(TRIM(full_name), ' ', '')) = 1 
+            THEN PARSENAME(REPLACE(TRIM(full_name), ' ', '.'), 2)
+            
     END AS first_name,
 
     PARSENAME(REPLACE(TRIM(full_name), ' ', '.'), 1) AS last_name,
