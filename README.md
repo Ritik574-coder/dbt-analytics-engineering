@@ -1,4 +1,4 @@
-# 🛒 Retail Analytics Engineering Platform (dbt + SQL Server 2022)
+# 🛒 Retail Analytics Engineering Platform
 
 ![dbt Core](https://img.shields.io/badge/dbt--Core-1.11.11-FF694B?style=flat&logo=dbt&logoColor=white)
 ![dbt-sqlserver](https://img.shields.io/badge/dbt--sqlserver-1.10.0-CC292B?style=flat&logo=microsoftsqlserver&logoColor=white)
@@ -315,5 +315,5 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ---
 
 <p center="center">
-  <b>Maintained by Ritik & Analytics Engineering Team</b> • Built with ❤️ using dbt Core & SQL Server
+  <b> Developed and Maintained by Ritik </b> • Built with ❤️ using dbt Core & SQL Server
 </p>
