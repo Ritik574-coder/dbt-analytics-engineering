@@ -7,13 +7,13 @@
 ![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=flat&logo=docker&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-An end-to-end, enterprise-grade **Analytics Engineering Platform** leveraging **dbt (data build tool)** and **Microsoft SQL Server 2022**. This project models a multi-domain retail business ecosystem—covering **Customers, Transactions, Products, Employees, Stores, Inventory, Returns, and Reviews**—following industry standard Medallion Architecture (Bronze → Silver → Gold) and Kimball Dimensional Modeling best practices.
+An end-to-end, enterprise-grade **Analytics Engineering Platform** leveraging **dbt (data build tool)** and **Microsoft SQL Server 2022**. This project models a multi-domain retail business ecosystem—covering **Customers, Transactions, Products, Employees, Stores, Inventory, Returns, and Reviews**—following industry-standard Medallion Architecture (Bronze → Silver → Gold) and Kimball Dimensional Modeling best practices.
 
 ---
 
 ## 🏗️ High-Level Architecture & Pipeline
 
-The platform ingests raw operational data (CSV files loaded into SQL Server), applies automated data cleaning, enforces strict schema & business logic validations, and structures data into analytical Star Schema models optimized for BI platforms (PowerBI, Tableau, Superset) and executive dashboards.
+The platform ingests raw operational data (CSV files loaded into SQL Server), applies automated data cleaning, enforces strict schema & business logic validations, and structures data into analytical Star Schema models optimized for BI platforms (Power BI, Tableau, Superset) and executive dashboards.
 
 ![dbt Medallion Architecture](https://img.shields.io/badge/Architecture-Medallion%20(Bronze%20%E2%86%92%20Silver%20%E2%86%92%20Gold)-orange?style=for-the-badge&logo=dbt)
 
@@ -268,7 +268,7 @@ dbt run
 # Execute data quality tests
 dbt test
 
-# Generate and serve interactively dbt documentation & lineage DAG
+# Generate and serve interactive dbt documentation & lineage DAG
 dbt docs generate
 dbt docs serve
 ```
@@ -285,7 +285,7 @@ The repository includes enterprise CI/CD workflows under `.github/workflows/`:
 ├───────────────────┬─────────────────────────────────────────────────────────┤
 │ `dbt-ci.yml`      │ Runs on every Pull Request to `main`.                   │
 │                   │ 1. Lints SQL and validates project parsing (`dbt parse`)│
-│                   │ 2. Spins up ephemeral SQL Server docker container       │
+│                   │ 2. Spins up an ephemeral SQL Server Docker container    │
 │                   │ 3. Executes `dbt run` and `dbt test`                    │
 ├───────────────────┼─────────────────────────────────────────────────────────┤
 │ `dbt-cd.yml`      │ Triggered on pushes to `main`. Deploys updated models   │
