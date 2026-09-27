@@ -1,0 +1,1 @@
+declare @dbt_sqlserver_noop int;
