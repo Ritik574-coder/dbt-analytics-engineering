@@ -1,0 +1,43 @@
+
+    -- Create target schema if it does not
+  USE [RetailDB];
+  IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'bronze')
+  BEGIN
+    EXEC('CREATE SCHEMA [bronze]')
+  END
+
+  
+
+  
+  EXEC('create view 
+    [bronze].[testview_2ba76eb41715c05f04d05492a1ff1cc7_16477]
+   as 
+    
+    
+    
+
+
+
+select restocked
+from "RetailDB"."bronze"."int_return_processing"
+where restocked is null
+
+
+
+  ;')
+  select
+    
+    count(*) as failures,
+    case when count(*) != 0
+      then 'true' else 'false' end as should_warn,
+    case when count(*) != 0
+      then 'true' else 'false' end as should_error
+  from (
+    select * from 
+    [bronze].[testview_2ba76eb41715c05f04d05492a1ff1cc7_16477]
+  
+  ) dbt_internal_test;
+
+  EXEC('drop view 
+    [bronze].[testview_2ba76eb41715c05f04d05492a1ff1cc7_16477]
+  ;')

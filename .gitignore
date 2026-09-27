@@ -1,21 +1,18 @@
 # ==========================================
 # DBT
 # ==========================================
-
-target/
 dbt_packages/
 logs/
-dbt.log
 
 # dbt generated artifacts
-manifest.json
-catalog.json
-run_results.json
-partial_parse.msgpack
-graph.gpickle
-graph_summary.json
-semantic_manifest.json
-
+# manifest.json
+# catalog.json
+# run_results.json
+# partial_parse.msgpack
+# graph.gpickle
+# graph_summary.json
+# semantic_manifest.json
+# overview_data.sql
 # ==========================================
 # Python
 # ==========================================
@@ -108,7 +105,6 @@ docker-data/
 # Misc Logs
 # ==========================================
 
-*.log
 my_intro.md
 mart_stracture.t
 mart_stracture.t

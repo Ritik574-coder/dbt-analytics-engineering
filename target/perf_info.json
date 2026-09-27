@@ -1,0 +1,56 @@
+{
+    "path_count": 258,
+    "parsed_path_count": 13,
+    "static_analysis_path_count": 10,
+    "static_analysis_parsed_path_count": 10,
+    "is_partial_parse_enabled": true,
+    "is_static_analysis_enabled": true,
+    "read_files_elapsed": 0.15386959899842623,
+    "load_macros_elapsed": 0.0016458659993077163,
+    "parse_project_elapsed": 1.9365297820004344,
+    "patch_sources_elapsed": 5.5652999435551465e-05,
+    "process_manifest_elapsed": 0.016926584001339506,
+    "load_all_elapsed": 2.8412363619972894,
+    "projects": [
+        {
+            "project_name": "dbt_analytics_engineering",
+            "elapsed": 1.9355608900041261,
+            "parsers": [
+                {
+                    "parser": "model",
+                    "elapsed": 0.6181939060006698,
+                    "parsed_path_count": 10
+                },
+                {
+                    "parser": "snapshot",
+                    "elapsed": 0.5630835140000272,
+                    "parsed_path_count": 1
+                },
+                {
+                    "parser": "test",
+                    "elapsed": 0.7542374869990454,
+                    "parsed_path_count": 2
+                }
+            ],
+            "parsed_path_count": 13
+        },
+        {
+            "project_name": "dbt_sqlserver",
+            "elapsed": 0,
+            "parsers": [],
+            "parsed_path_count": 0
+        },
+        {
+            "project_name": "dbt",
+            "elapsed": 0,
+            "parsers": [],
+            "parsed_path_count": 0
+        },
+        {
+            "project_name": "dbt_utils",
+            "elapsed": 0,
+            "parsers": [],
+            "parsed_path_count": 0
+        }
+    ]
+}
